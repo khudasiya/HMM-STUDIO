@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+:root {
+  --bg-dark: #08060e;
+  --bg-surface: #100b1d;
+  --purple-primary: #8b5cf6;
+  --purple-glow: #a855f7;
+  --lavender-light: #e9d5ff;
+  --lavender-accent: #c084fc;
+  --border-glass: rgba(139, 92, 246, 0.2);
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: #f1f5f9;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #08060e;
+}
+::-webkit-scrollbar-thumb {
+  background: #2e234b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8b5cf6;
+}
+
+/* Continuous Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Glassmorphic Panel Styles */
+.glass-panel {
+  background: rgba(16, 11, 29, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  border-color: rgba(192, 132, 252, 0.45);
+  box-shadow: 0 12px 40px -10px rgba(168, 85, 247, 0.3);
+  transform: translateY(-2px);
+}
+
+.glass-nav-item {
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  background: rgba(13, 9, 24, 0.6);
+  transition: all 0.2s ease;
+}
+
+.glass-nav-item:hover, .glass-nav-item.active {
+  border-color: rgba(192, 132, 252, 0.5);
+  background: rgba(139, 92, 246, 0.15);
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
+}
+
+/* Hero 3D Arc Gallery Positioning */
+.hero-arc-container {
+  perspective: 1200px;
+}
+
+.hero-arc-card {
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-style: preserve-3d;
+}
+
+.hero-arc-card:hover {
+  transform: scale(1.08) translateZ(30px) !important;
+  z-index: 40 !important;
+}
+
+/* Pulsing Frequency Audio Visualizer */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; filter: blur(20px); }
+  50% { opacity: 0.8; filter: blur(35px); }
+}
+
+.purple-glow-bg {
+  animation: pulse-glow 6s infinite ease-in-out;
+}
+
+/* Infinite horizontal card scroll — slides exactly one set-width (33.333%) so the 3× duplicate loops seamlessly */
+@keyframes scroll-cards {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.3333%); }
+}
