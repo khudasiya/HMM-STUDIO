@@ -30,9 +30,9 @@
   --muted-foreground: #94a3b8;
   --accent: #a855f7;
   --accent-foreground: #ffffff;
-  --folder-back: oklch(0.65 0.12 45);
-  --folder-front: oklch(0.7 0.14 50);
-  --folder-tab: oklch(0.6 0.1 40);
+  --folder-back: oklch(0.75 0.12 45);
+  --folder-front: oklch(0.8 0.14 50);
+  --folder-tab: oklch(0.7 0.1 40);
 }
 
 body {
