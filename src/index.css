@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-folder-back: var(--folder-back);
+  --color-folder-front: var(--folder-front);
+  --color-folder-tab: var(--folder-tab);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+}
+
 :root {
   --bg-dark: #08060e;
   --bg-surface: #100b1d;
@@ -8,6 +21,18 @@
   --lavender-light: #e9d5ff;
   --lavender-accent: #c084fc;
   --border-glass: rgba(139, 92, 246, 0.2);
+
+  /* 3D Folder & shadcn Design Tokens */
+  --card: #100b1d;
+  --card-foreground: #f8fafc;
+  --border: rgba(139, 92, 246, 0.25);
+  --muted: #171127;
+  --muted-foreground: #94a3b8;
+  --accent: #a855f7;
+  --accent-foreground: #ffffff;
+  --folder-back: oklch(0.65 0.12 45);
+  --folder-front: oklch(0.7 0.14 50);
+  --folder-tab: oklch(0.6 0.1 40);
 }
 
 body {
