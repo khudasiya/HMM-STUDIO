@@ -392,7 +392,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onDataChange, onBackTo
       });
 
       setShowModal(false);
-      showToast('success', `Track "${formTitle}" successfully published & auto-synced!`);
+      showToast('success', `Track "${formTitle}" successfully published & auto-synced to ${formCategory.replace('_', ' ')}!`);
+      setActiveTab(formCategory);
       await loadAllData();
       await checkHealth();
       onDataChange();
@@ -738,7 +739,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onDataChange, onBackTo
 
             <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
               <Music className="w-5 h-5 text-purple-400" />
-              {editingId ? 'Edit' : 'Add New'} {activeTab.replace('_', ' ').toUpperCase()} Track
+              {editingId ? 'Edit' : 'Add New'} {formCategory.replace('_', ' ').toUpperCase()} Track
             </h3>
 
             {activeTab === 'blog' ? (
@@ -792,6 +793,51 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onDataChange, onBackTo
               </form>
             ) : (
               <form onSubmit={handleSaveAudio} className="space-y-4">
+                {/* Website Section / Category Selector */}
+                <div className="bg-purple-950/30 border border-purple-800/50 rounded-2xl p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-purple-300 uppercase">
+                      Website Section / Category *
+                    </label>
+                    <span className="text-[10px] font-mono text-purple-300 bg-purple-950/80 border border-purple-700/50 px-2 py-0.5 rounded-full uppercase font-bold">
+                      Section: {formCategory.replace('_', ' ')}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'logo_audio', label: 'Logo Audio', badge: '2-5s Sonic Logos' },
+                      { id: 'brand_anthem', label: 'Brand Anthem', badge: 'Full Anthems' },
+                      { id: 'podcast_audio', label: 'Podcast Audio', badge: 'Intros & Outros' },
+                      { id: 'commercial_song', label: 'Commercial Songs', badge: 'Ad Soundtracks' },
+                      { id: 'jingle', label: 'Jingle', badge: 'Catchy Hooks' },
+                      { id: 'extras', label: 'Extras', badge: 'Sound Design' },
+                    ].map((cat) => {
+                      const isSelected = formCategory === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setFormCategory(cat.id as CategoryType)}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            isSelected
+                              ? 'bg-purple-600 border-purple-300 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] ring-1 ring-purple-300 scale-[1.02]'
+                              : 'bg-[#08060e] border-purple-900/50 text-slate-300 hover:border-purple-600 hover:text-white'
+                          }`}
+                        >
+                          <div className="text-xs font-bold flex items-center justify-between truncate">
+                            <span>{cat.label}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-white shrink-0 ml-1" />}
+                          </div>
+                          <div className={`text-[10px] mt-0.5 truncate ${isSelected ? 'text-purple-100' : 'text-purple-300/60'}`}>
+                            {cat.badge}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-purple-300 uppercase mb-1">Track Title *</label>
                   <input
@@ -923,7 +969,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onDataChange, onBackTo
                   </label>
                 </div>
 
-                {activeTab === 'commercial_song' && (
+                {formCategory === 'commercial_song' && (
                   <div className="p-3.5 bg-purple-950/30 border border-purple-800/40 rounded-xl space-y-3">
                     <p className="text-xs font-bold text-purple-300 uppercase">Optional Case Study Breakdown</p>
                     <input
