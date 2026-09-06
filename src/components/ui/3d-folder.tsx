@@ -210,14 +210,14 @@ export function AnimatedFolder({
 
       {/* ── OPENED CARDS OVERLAY: Lined up ON the folder ── */}
       <div
-        className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none"
+        className="absolute inset-x-[-60%] inset-y-0 flex items-center justify-center z-40 pointer-events-none"
         style={{
           opacity: isOpen ? 1 : 0,
           transition: "opacity 500ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
         <div
-          className="flex items-center justify-center gap-3 sm:gap-4 md:gap-5 pointer-events-auto flex-wrap"
+          className="flex items-center justify-center gap-2.5 sm:gap-3 md:gap-4 pointer-events-auto flex-nowrap"
           style={{
             perspective: "800px",
           }}
@@ -231,7 +231,7 @@ export function AnimatedFolder({
               <div
                 key={project.id}
                 onClick={(e) => handleCardNavigate(project, e)}
-                className="group/card relative w-28 sm:w-36 md:w-44 h-40 sm:h-52 md:h-60 rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:shadow-[0_12px_40px_rgba(245,158,11,0.35)] hover:border-amber-400/80 hover:z-50 hover:scale-110"
+                className="group/card relative w-24 sm:w-32 md:w-36 h-36 sm:h-44 md:h-52 rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:shadow-[0_12px_40px_rgba(245,158,11,0.35)] hover:border-amber-400/80 hover:z-50 hover:scale-110 shrink-0"
                 style={{
                   transform: isOpen
                     ? `translateY(0px) scale(1) rotateY(${tiltY}deg)`
