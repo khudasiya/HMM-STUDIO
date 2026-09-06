@@ -4,7 +4,6 @@ import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ServicesSection } from './components/ServicesSection';
 import { CardWalletShowcase } from './components/CardWalletShowcase';
-import { PortfolioVaultSection } from './components/PortfolioVaultSection';
 import { NavRingSection } from './components/NavRingSection';
 import { LogoAudioSection } from './components/LogoAudioSection';
 import { BrandAnthemSection } from './components/BrandAnthemSection';
@@ -156,9 +155,6 @@ export function AppContent() {
 
             {/* 2. 3D Interactive Card Wallet Dispenser */}
             <CardWalletShowcase onNavigate={handleNavigate} />
-
-            {/* 3. 3D Interactive Sonic Branding Vaults */}
-            <PortfolioVaultSection onNavigate={handleNavigate} />
 
             {/* Services Overview */}
             <ServicesSection onNavigate={handleNavigate} />
