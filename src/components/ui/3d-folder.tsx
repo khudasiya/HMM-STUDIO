@@ -4,12 +4,10 @@ import React, {
   useState,
   useRef,
   useEffect,
-  useLayoutEffect,
-  useCallback,
   forwardRef,
 } from "react";
 import { cn } from "@/lib/utils";
-import { X, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ExternalLink, ArrowRight } from "lucide-react";
 
 export interface Project {
   id: string;
@@ -37,32 +35,17 @@ export function AnimatedFolder({
   onSelectProject,
 }: AnimatedFolderProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [sourceRect, setSourceRect] = useState<DOMRect | null>(null);
-  const [hiddenCardId, setHiddenCardId] = useState<string | null>(null);
+  const [isScatteredOpen, setIsScatteredOpen] = useState(false);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const handleProjectClick = (project: Project, index: number) => {
-    const cardEl = cardRefs.current[index];
-    if (cardEl) {
-      setSourceRect(cardEl.getBoundingClientRect());
-    }
-    setSelectedIndex(index);
-    setHiddenCardId(project.id);
+  const handleFolderClick = () => {
+    setIsScatteredOpen(true);
   };
 
-  const handleCloseLightbox = () => {
-    setSelectedIndex(null);
-    setSourceRect(null);
-  };
-
-  const handleCloseComplete = () => {
-    setHiddenCardId(null);
-  };
-
-  const handleNavigate = (newIndex: number) => {
-    setSelectedIndex(newIndex);
-    setHiddenCardId(projects[newIndex]?.id || null);
+  const handleCardClick = (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // If onSelectProject is provided, clicking the card directly opens scattered deck or navigates
+    setIsScatteredOpen(true);
   };
 
   const totalCards = projects.length;
@@ -87,7 +70,7 @@ export function AnimatedFolder({
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => setIsHovered((prev) => !prev)}
+        onClick={handleFolderClick}
       >
         {/* Subtle background glow on hover */}
         <div
@@ -161,8 +144,8 @@ export function AnimatedFolder({
                   rotation={rotation}
                   translationX={translationX}
                   translationY={translationY}
-                  onClick={() => handleProjectClick(project, index)}
-                  isSelected={hiddenCardId === project.id}
+                  onClick={(e) => handleCardClick(project, e)}
+                  isSelected={false}
                 />
               );
             })}
@@ -214,27 +197,24 @@ export function AnimatedFolder({
           {subtitle || `${projects.length} audio disciplines`}
         </p>
 
-        {/* Hover hint */}
+        {/* Click to Scatter Hint */}
         <div
           className="mt-4 flex items-center gap-1.5 text-xs text-amber-400/90 font-mono transition-all duration-300"
           style={{
-            opacity: isHovered ? 0.8 : 0.6,
+            opacity: isHovered ? 1 : 0.7,
             transform: isHovered ? "translateY(4px)" : "translateY(0)",
           }}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-          <span>{isHovered ? "Click any card to explore" : "Hover or tap to explore"}</span>
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span>{isHovered ? "Click to open scattered on screen" : "Hover to preview • Click to open"}</span>
         </div>
       </div>
 
-      <ImageLightbox
+      {/* Scattered Cards Full Screen Modal */}
+      <ScatteredCardsModal
+        isOpen={isScatteredOpen}
+        onClose={() => setIsScatteredOpen(false)}
         projects={projects}
-        currentIndex={selectedIndex ?? 0}
-        isOpen={selectedIndex !== null}
-        onClose={handleCloseLightbox}
-        sourceRect={sourceRect}
-        onCloseComplete={handleCloseComplete}
-        onNavigate={handleNavigate}
         onSelectProject={onSelectProject}
       />
     </>
@@ -249,7 +229,7 @@ export interface ProjectCardProps {
   rotation: number;
   translationX: number;
   translationY: number;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
   isSelected: boolean;
 }
 
@@ -287,10 +267,7 @@ export const ProjectCard = forwardRef<HTMLDivElement, ProjectCardProps>(
           left: "-52px",
           top: "-70px",
         }}
-        onClick={(e) => {
-          e.stopPropagation();
-          onClick();
-        }}
+        onClick={onClick}
       >
         <img
           src={project.image || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80"}
@@ -331,389 +308,132 @@ export const ProjectCard = forwardRef<HTMLDivElement, ProjectCardProps>(
 
 ProjectCard.displayName = "ProjectCard";
 
-export interface ImageLightboxProps {
-  projects: Project[];
-  currentIndex: number;
+export interface ScatteredCardsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  sourceRect: DOMRect | null;
-  onCloseComplete?: () => void;
-  onNavigate: (index: number) => void;
+  projects: Project[];
   onSelectProject?: (project: Project) => void;
 }
 
-export function ImageLightbox({
-  projects,
-  currentIndex,
+export function ScatteredCardsModal({
   isOpen,
   onClose,
-  sourceRect,
-  onCloseComplete,
-  onNavigate,
+  projects,
   onSelectProject,
-}: ImageLightboxProps) {
-  const [animationPhase, setAnimationPhase] = useState<"initial" | "animating" | "complete">("initial");
-  const [isClosing, setIsClosing] = useState(false);
-  const [shouldRender, setShouldRender] = useState(false);
-  const [internalIndex, setInternalIndex] = useState(currentIndex);
-  const [prevIndex, setPrevIndex] = useState(currentIndex);
-  const [isSliding, setIsSliding] = useState(false);
-  const [_slideDirection, setSlideDirection] = useState<"left" | "right">("right");
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const totalProjects = projects.length;
-  const hasNext = internalIndex < totalProjects - 1;
-  const hasPrev = internalIndex > 0;
-
-  const currentProject = projects[internalIndex];
-  const _previousProject = projects[prevIndex];
-
-  useEffect(() => {
-    if (isOpen && currentIndex !== internalIndex && !isSliding) {
-      const direction = currentIndex > internalIndex ? "left" : "right";
-      setSlideDirection(direction);
-      setPrevIndex(internalIndex);
-      setIsSliding(true);
-
-      const timer = setTimeout(() => {
-        setInternalIndex(currentIndex);
-        setIsSliding(false);
-      }, 400);
-
-      return () => clearTimeout(timer);
-    }
-  }, [currentIndex, isOpen, internalIndex, isSliding]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setInternalIndex(currentIndex);
-      setPrevIndex(currentIndex);
-      setIsSliding(false);
-    }
-  }, [isOpen, currentIndex]);
-
-  const navigateNext = useCallback(() => {
-    if (internalIndex >= totalProjects - 1 || isSliding) return;
-    onNavigate(internalIndex + 1);
-  }, [internalIndex, totalProjects, isSliding, onNavigate]);
-
-  const navigatePrev = useCallback(() => {
-    if (internalIndex <= 0 || isSliding) return;
-    onNavigate(internalIndex - 1);
-  }, [internalIndex, isSliding, onNavigate]);
-
-  const handleClose = useCallback(() => {
-    setIsClosing(true);
-    onClose();
-    setTimeout(() => {
-      setIsClosing(false);
-      setShouldRender(false);
-      setAnimationPhase("initial");
-      onCloseComplete?.();
-    }, 400);
-  }, [onClose, onCloseComplete]);
-
+}: ScatteredCardsModalProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return;
-      if (e.key === "Escape") handleClose();
-      if (e.key === "ArrowRight") navigateNext();
-      if (e.key === "ArrowLeft") navigatePrev();
+      if (e.key === "Escape") onClose();
     };
-
-    window.addEventListener("keydown", handleKeyDown);
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKeyDown);
     }
-
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, handleClose, navigateNext, navigatePrev]);
+  }, [isOpen, onClose]);
 
-  useLayoutEffect(() => {
-    if (isOpen && sourceRect) {
-      setShouldRender(true);
-      setAnimationPhase("initial");
-      setIsClosing(false);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setAnimationPhase("animating");
-        });
-      });
-      const timer = setTimeout(() => {
-        setAnimationPhase("complete");
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, sourceRect]);
+  if (!isOpen) return null;
 
-  const handleDotClick = (idx: number) => {
-    if (isSliding || idx === internalIndex) return;
-    onNavigate(idx);
-  };
-
-  if (!shouldRender || !currentProject) return null;
-
-  const getInitialStyles = (): React.CSSProperties => {
-    if (!sourceRect) return {};
-
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const targetWidth = Math.min(768, viewportWidth - 64);
-    const targetHeight = Math.min(viewportHeight * 0.85, 600);
-
-    const targetX = (viewportWidth - targetWidth) / 2;
-    const targetY = (viewportHeight - targetHeight) / 2;
-
-    const scaleX = sourceRect.width / targetWidth;
-    const scaleY = sourceRect.height / targetHeight;
-    const scale = Math.max(scaleX, scaleY);
-
-    const translateX = sourceRect.left + sourceRect.width / 2 - (targetX + targetWidth / 2);
-    const translateY = sourceRect.top + sourceRect.height / 2 - (targetY + targetHeight / 2);
-
-    return {
-      transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
-      opacity: 1,
-    };
-  };
-
-  const getFinalStyles = (): React.CSSProperties => {
-    return {
-      transform: "translate(0, 0) scale(1)",
-      opacity: 1,
-    };
-  };
-
-  const currentStyles = animationPhase === "initial" && !isClosing ? getInitialStyles() : getFinalStyles();
+  const cardRotations = [-2.5, 1.8, -2, 2.2, -1.5, 2];
 
   return (
     <div
-      className={cn("fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8")}
-      onClick={handleClose}
-      style={{
-        opacity: isClosing ? 0 : 1,
-        transition: "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1)",
-      }}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-start sm:justify-center p-4 sm:p-8 bg-black/90 backdrop-blur-2xl overflow-y-auto animate-fade-in"
+      onClick={onClose}
     >
-      <div
-        className="absolute inset-0 bg-background/85 backdrop-blur-xl"
-        style={{
-          opacity: animationPhase === "initial" && !isClosing ? 0 : 1,
-          transition: "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-      />
+      {/* Top Header Bar */}
+      <div className="w-full max-w-6xl flex items-center justify-between mb-6 pt-4 sm:pt-0 relative z-20">
+        <div className="flex items-center gap-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+          <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-amber-300">
+            Hmm Studio Sound Vault • 6 Disciplines Scattered
+          </span>
+        </div>
 
-      {/* Close button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          handleClose();
-        }}
-        className={cn(
-          "absolute top-5 right-5 z-50",
-          "w-10 h-10 flex items-center justify-center",
-          "rounded-full bg-muted/60 backdrop-blur-md",
-          "border border-border",
-          "text-muted-foreground hover:text-foreground hover:bg-muted",
-          "transition-all duration-300 ease-out hover:scale-105 active:scale-95 cursor-pointer"
-        )}
-        style={{
-          opacity: animationPhase === "complete" && !isClosing ? 1 : 0,
-          transform: animationPhase === "complete" && !isClosing ? "translateY(0)" : "translateY(-10px)",
-          transition: "opacity 300ms ease-out, transform 300ms ease-out",
-        }}
-      >
-        <X className="w-4 h-4" strokeWidth={2.5} />
-      </button>
-
-      {/* Prev button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          navigatePrev();
-        }}
-        disabled={!hasPrev || isSliding}
-        className={cn(
-          "absolute left-4 md:left-8 z-50",
-          "w-12 h-12 flex items-center justify-center",
-          "rounded-full bg-muted/60 backdrop-blur-md",
-          "border border-border",
-          "text-muted-foreground hover:text-foreground hover:bg-muted",
-          "transition-all duration-300 ease-out hover:scale-110 active:scale-95 cursor-pointer",
-          "disabled:opacity-0 disabled:pointer-events-none"
-        )}
-        style={{
-          opacity: animationPhase === "complete" && !isClosing && hasPrev ? 1 : 0,
-          transform: animationPhase === "complete" && !isClosing ? "translateX(0)" : "translateX(-20px)",
-          transition: "opacity 300ms ease-out 150ms, transform 300ms ease-out 150ms",
-        }}
-      >
-        <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
-      </button>
-
-      {/* Next button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          navigateNext();
-        }}
-        disabled={!hasNext || isSliding}
-        className={cn(
-          "absolute right-4 md:right-8 z-50",
-          "w-12 h-12 flex items-center justify-center",
-          "rounded-full bg-muted/60 backdrop-blur-md",
-          "border border-border",
-          "text-muted-foreground hover:text-foreground hover:bg-muted",
-          "transition-all duration-300 ease-out hover:scale-110 active:scale-95 cursor-pointer",
-          "disabled:opacity-0 disabled:pointer-events-none"
-        )}
-        style={{
-          opacity: animationPhase === "complete" && !isClosing && hasNext ? 1 : 0,
-          transform: animationPhase === "complete" && !isClosing ? "translateX(0)" : "translateX(20px)",
-          transition: "opacity 300ms ease-out 150ms, transform 300ms ease-out 150ms",
-        }}
-      >
-        <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
-      </button>
-
-      <div
-        ref={containerRef}
-        className="relative z-10 w-full max-w-3xl"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          ...currentStyles,
-          transform: isClosing ? "translate(0, 0) scale(0.95)" : currentStyles.transform,
-          transition:
-            animationPhase === "initial" && !isClosing
-              ? "none"
-              : "transform 400ms cubic-bezier(0.16, 1, 0.3, 1), opacity 400ms ease-out",
-          transformOrigin: "center center",
-        }}
-      >
-        <div
-          className={cn(
-            "relative overflow-hidden",
-            "rounded-2xl",
-            "bg-card",
-            "ring-1 ring-border",
-            "shadow-2xl"
-          )}
-          style={{
-            borderRadius: animationPhase === "initial" && !isClosing ? "8px" : "16px",
-            transition: "border-radius 500ms cubic-bezier(0.16, 1, 0.3, 1)",
-          }}
+        <button
+          onClick={onClose}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white text-xs font-mono border border-white/15 transition-all duration-200 cursor-pointer shadow-md"
         >
-          <div className="relative overflow-hidden">
+          <span>ESC / CLOSE</span>
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Scattered Cards Grid Canvas */}
+      <div
+        className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 pb-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {projects.map((project, idx) => {
+          const rot = cardRotations[idx % cardRotations.length];
+
+          return (
             <div
-              className="flex transition-transform duration-400 ease-out"
-              style={{
-                transform: `translateX(-${internalIndex * 100}%)`,
-                transition: isSliding ? "transform 400ms cubic-bezier(0.32, 0.72, 0, 1)" : "none",
+              key={project.id}
+              onClick={() => {
+                onSelectProject?.(project);
+                onClose();
               }}
+              style={{
+                transform: `rotate(${rot}deg)`,
+              }}
+              className="group relative h-64 sm:h-72 rounded-2xl overflow-hidden border border-white/15 bg-[#120b22] p-5 flex flex-col justify-between cursor-pointer transition-all duration-300 hover:scale-105 hover:rotate-0 hover:z-30 hover:border-amber-400/80 shadow-2xl hover:shadow-[0_20px_50px_rgba(245,158,11,0.25)]"
             >
-              {projects.map((project) => (
-                <img
-                  key={project.id}
-                  src={project.image || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"}
-                  alt={project.title}
-                  className="w-full h-auto max-h-[65vh] object-cover bg-background flex-shrink-0"
-                  style={{ minWidth: "100%" }}
-                  onError={(e) => {
-                    e.currentTarget.src =
-                      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80";
-                  }}
-                />
-              ))}
-            </div>
+              {/* High-res Cover Artwork with Smooth Zoom */}
+              <img
+                src={project.image}
+                alt={project.title}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-40 group-hover:opacity-65"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0c0618] via-[#0c0618]/70 to-transparent pointer-events-none" />
 
-            {/* Subtle vignette effect */}
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-card/30 via-transparent to-card/10" />
-          </div>
+              {/* Card Top: Number & Category */}
+              <div className="relative z-10 flex items-center justify-between">
+                <span
+                  className="text-[11px] font-mono font-extrabold px-2.5 py-1 rounded-md bg-black/80 border border-white/20 shadow-sm"
+                  style={{ color: project.accentColor || "#f59e0b" }}
+                >
+                  {project.cardNum || `0${idx + 1}`}
+                </span>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-300/80 bg-black/40 px-2 py-0.5 rounded border border-white/10">
+                  {project.category || "DISCIPLINE"}
+                </span>
+              </div>
 
-          <div
-            className={cn("px-6 py-5", "bg-card", "border-t border-border")}
-            style={{
-              opacity: animationPhase === "complete" && !isClosing ? 1 : 0,
-              transform: animationPhase === "complete" && !isClosing ? "translateY(0)" : "translateY(20px)",
-              transition: "opacity 300ms ease-out 100ms, transform 300ms ease-out 100ms",
-            }}
-          >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
-                    style={{ color: currentProject?.accentColor }}
-                  >
-                    {currentProject?.category || "DISCIPLINE"}
-                  </span>
-                  <span className="text-xs font-mono text-muted-foreground">
-                    {internalIndex + 1} of {projects.length}
-                  </span>
-                </div>
-
-                <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight truncate">
-                  {currentProject?.title}
+              {/* Card Bottom: Title, Description & CTA */}
+              <div className="relative z-10 mt-auto pt-4 border-t border-white/15">
+                <h3 className="text-xl font-extrabold text-white group-hover:text-amber-300 transition-colors tracking-tight">
+                  {project.title}
                 </h3>
-
-                {currentProject?.description && (
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
-                    {currentProject.description}
+                {project.description && (
+                  <p className="text-xs text-slate-300/90 line-clamp-2 mt-1 leading-relaxed">
+                    {project.description}
                   </p>
                 )}
 
-                <div className="flex items-center gap-3 mt-2">
-                  <p className="text-xs text-muted-foreground hidden sm:block">
-                    <kbd className="px-1.5 py-0.5 mx-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded border border-border">
-                      ←
-                    </kbd>
-                    <kbd className="px-1.5 py-0.5 mx-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded border border-border">
-                      →
-                    </kbd>{" "}
-                    to navigate
-                  </p>
-                  <div className="flex items-center gap-1.5">
-                    {projects.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleDotClick(idx)}
-                        className={cn(
-                          "w-2 h-2 rounded-full transition-all duration-300 cursor-pointer",
-                          idx === internalIndex
-                            ? "bg-foreground w-4"
-                            : "bg-muted-foreground/40 hover:bg-muted-foreground/60"
-                        )}
-                      />
-                    ))}
+                <div className="mt-4 flex items-center justify-between text-xs font-mono font-bold">
+                  <span
+                    className="tracking-wider text-[11px] group-hover:underline"
+                    style={{ color: project.accentColor || "#f59e0b" }}
+                  >
+                    EXPLORE AUDIO TRACKS
+                  </span>
+                  <div className="w-7 h-7 rounded-full bg-white/10 group-hover:bg-amber-500 group-hover:text-black flex items-center justify-center transition-all duration-200">
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
               </div>
-
-              {onSelectProject && (
-                <button
-                  onClick={() => {
-                    onSelectProject(currentProject);
-                    handleClose();
-                  }}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2",
-                    "text-xs font-bold font-mono tracking-wider text-primary-foreground",
-                    "bg-primary hover:bg-primary/90",
-                    "rounded-xl border border-primary/40",
-                    "transition-all duration-200 ease-out cursor-pointer shadow-md active:scale-95 shrink-0"
-                  )}
-                >
-                  <span>EXPLORE TRACKS</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </button>
-              )}
             </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
+
+      <p className="text-xs text-slate-400 font-mono text-center pb-4">
+        Click any discipline card to jump straight to its audio catalog
+      </p>
     </div>
   );
 }
