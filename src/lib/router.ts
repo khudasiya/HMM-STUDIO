@@ -106,7 +106,7 @@ export const ROUTES: RouteInfo[] = [
   },
   {
     id: 'admin',
-    path: '/admin',
+    path: '/haldiram',
     label: 'ADMIN PORTAL',
     shortLabel: 'ADMIN',
     category: 'Dashboard',
@@ -117,6 +117,10 @@ export const ROUTES: RouteInfo[] = [
 export function getSectionIdFromPath(pathname: string): string {
   const cleanPath = pathname.toLowerCase().replace(/\/$/, '') || '/';
   
+  // Secret admin path
+  if (cleanPath === '/haldiram') return 'admin';
+  if (cleanPath === '/admin') return 'hero';
+
   // Direct path matches
   const route = ROUTES.find(r => r.path === cleanPath);
   if (route) return route.id;

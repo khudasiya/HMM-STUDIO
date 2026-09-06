@@ -89,8 +89,8 @@ export function AppContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Render Dedicated Admin Page
-  if (currentSection === 'admin' || window.location.pathname === '/admin') {
+  // Render Dedicated Secret Admin Page
+  if (currentSection === 'admin' || window.location.pathname.toLowerCase() === '/haldiram') {
     return (
       <div className="min-h-screen bg-[#08060e] text-slate-100 selection:bg-purple-600 selection:text-white">
         <Header currentSection="admin" onNavigate={handleNavigate} />

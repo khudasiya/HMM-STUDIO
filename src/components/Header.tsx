@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Shield, Sparkles, Layers } from 'lucide-react';
-import { api } from '../lib/supabase';
-import { ROUTES } from '../lib/router';
+import { Menu, X } from 'lucide-react';
 
 interface HeaderProps {
   currentSection: string;
@@ -9,20 +7,14 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ currentSection, onNavigate }) => {
-  const [isAdmin, setIsAdmin] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const checkAuth = () => setIsAdmin(api.isAdminAuthenticated());
-    checkAuth();
-    window.addEventListener('hmm_auth_update', checkAuth);
-
     const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handleScroll);
 
     return () => {
-      window.removeEventListener('hmm_auth_update', checkAuth);
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
@@ -79,15 +71,6 @@ export const Header: React.FC<HeaderProps> = ({ currentSection, onNavigate }) =>
         </nav>
 
         <div className="flex items-center gap-2">
-          {isAdmin && (
-            <button
-              onClick={() => handleNavClick('admin')}
-              className="px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold flex items-center gap-1 hover:bg-amber-500/30 transition-colors"
-            >
-              <Shield className="w-3.5 h-3.5" /> Admin
-            </button>
-          )}
-
           <button
             onClick={() => handleNavClick('contact')}
             className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-mono font-bold tracking-wider uppercase shadow-lg transition-all cursor-pointer hover:scale-105"
