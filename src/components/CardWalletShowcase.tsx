@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layers, ArrowRight, ChevronUp, Folder } from 'lucide-react';
+import React from 'react';
+import { Layers, ArrowRight } from 'lucide-react';
 import { AnimatedFolder, Project } from './ui/3d-folder';
 
 interface CardWalletShowcaseProps {
@@ -68,17 +68,15 @@ const AUDIO_DISCIPLINES: Project[] = [
 export const CardWalletShowcase: React.FC<CardWalletShowcaseProps> = ({
   onNavigate,
   title = "Our Work & Sound Library",
-  subtitle = "Hover over the folder to preview • Click to spread all cards across the screen",
+  subtitle = "Hover the folder to preview • Click to reveal all 6 disciplines on the folder.",
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   return (
     <section className="py-20 px-3 sm:px-6 max-w-7xl mx-auto relative z-20 overflow-hidden">
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-purple-900/10 blur-[140px] pointer-events-none rounded-full" />
 
       {/* Section Header */}
-      <div className="text-center max-w-2xl mx-auto mb-12 relative z-10">
+      <div className="text-center max-w-2xl mx-auto mb-14 relative z-10">
         <div className="authkit-badge mb-3 inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 text-xs font-mono">
           <Layers className="w-3.5 h-3.5 text-purple-400" />
           <span>OUR COMPLETE AUDIO PORTFOLIO</span>
@@ -91,97 +89,19 @@ export const CardWalletShowcase: React.FC<CardWalletShowcaseProps> = ({
         </p>
       </div>
 
-      {/* ── THE INTERACTIVE SOUND VAULT (INLINE SPREAD DECK) ── */}
-      <div className="relative flex flex-col items-center justify-center min-h-[460px]">
+      {/* ── SINGLE 3D FOLDER — cards appear ON it when clicked ── */}
+      <div className="flex flex-col items-center justify-center relative z-10">
+        <div className="w-full max-w-md flex items-center justify-center">
+          <AnimatedFolder
+            title="Hmm Studio Sound Vault"
+            subtitle="6 audio production disciplines"
+            projects={AUDIO_DISCIPLINES}
+            onSelectProject={(project) => onNavigate(project.id)}
+            className="w-full"
+          />
+        </div>
 
-        {/* 1. CLOSED STATE: CENTER 3D FOLDER */}
-        {!isExpanded && (
-          <div className="w-full max-w-md flex flex-col items-center justify-center animate-fade-in">
-            <AnimatedFolder
-              title="Hmm Studio Sound Vault"
-              subtitle="6 audio production disciplines"
-              projects={AUDIO_DISCIPLINES}
-              onClickFolder={() => setIsExpanded(true)}
-              isExpanded={false}
-              className="w-full"
-            />
-          </div>
-        )}
-
-        {/* 2. EXPANDED STATE: WIDE HORIZONTAL SPREAD ACROSS THE PAGE (NOT WHOLE SCREEN) */}
-        {isExpanded && (
-          <div className="w-full flex flex-col items-center justify-center animate-fade-in transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
-            
-            {/* The 6 Cards Horizontal Ribbon (Directly in the red rectangle area!) */}
-            <div className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 px-2 my-4">
-              {AUDIO_DISCIPLINES.map((card, idx) => (
-                <div
-                  key={card.id}
-                  onClick={() => onNavigate(card.id)}
-                  style={{
-                    animationDelay: `${idx * 40}ms`,
-                  }}
-                  className="group relative h-72 sm:h-80 rounded-2xl overflow-hidden border border-white/15 bg-[#120b22] p-4 flex flex-col justify-between cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-3 hover:scale-105 hover:z-30 hover:border-amber-400/80 shadow-2xl hover:shadow-[0_20px_45px_rgba(245,158,11,0.25)]"
-                >
-                  {/* High-res Artwork */}
-                  <img
-                    src={card.image}
-                    alt={card.title}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110 opacity-40 group-hover:opacity-65"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c0618] via-[#0c0618]/75 to-transparent pointer-events-none" />
-
-                  {/* Card Header: Number & Category */}
-                  <div className="relative z-10 flex items-center justify-between">
-                    <span
-                      className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded bg-black/80 border border-white/20 shadow-sm"
-                      style={{ color: card.accentColor || "#f59e0b" }}
-                    >
-                      {card.cardNum}
-                    </span>
-                    <Folder className="w-3.5 h-3.5 text-amber-400/80" />
-                  </div>
-
-                  {/* Card Bottom: Title & CTA */}
-                  <div className="relative z-10 mt-auto pt-3 border-t border-white/15">
-                    <span className="text-[9px] font-mono uppercase tracking-wider block text-slate-300/80 truncate">
-                      {card.category}
-                    </span>
-                    <h3 className="text-base sm:text-lg font-extrabold text-white group-hover:text-amber-300 transition-colors tracking-tight truncate mt-0.5">
-                      {card.title}
-                    </h3>
-                    <p className="text-[11px] text-slate-300/80 line-clamp-2 mt-1 leading-relaxed">
-                      {card.description}
-                    </p>
-
-                    <div className="mt-3 flex items-center justify-between text-[11px] font-mono font-bold pt-2 border-t border-white/10">
-                      <span
-                        className="tracking-wider group-hover:underline"
-                        style={{ color: card.accentColor || "#f59e0b" }}
-                      >
-                        EXPLORE
-                      </span>
-                      <ArrowRight className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Collapse Control Bar Below the Cards */}
-            <div className="mt-8 flex items-center justify-center gap-4">
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 hover:text-amber-200 text-xs font-mono font-bold tracking-wider transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 cursor-pointer shadow-lg shadow-amber-500/10"
-              >
-                <ChevronUp className="w-4 h-4" />
-                <span>FOLD CARDS BACK INTO VAULT</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── QUICK DISCIPLINE SHORTCUT PILLS (BELOW FOLDER) ── */}
+        {/* Quick discipline shortcut pills */}
         <div className="mt-12 flex flex-wrap items-center justify-center gap-2.5 max-w-4xl px-4">
           {AUDIO_DISCIPLINES.map((card) => (
             <button
@@ -198,7 +118,6 @@ export const CardWalletShowcase: React.FC<CardWalletShowcaseProps> = ({
             </button>
           ))}
         </div>
-
       </div>
     </section>
   );
