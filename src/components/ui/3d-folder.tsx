@@ -60,8 +60,8 @@ export function AnimatedFolder({
         className
       )}
       style={{
-        minWidth: "320px",
-        minHeight: "400px",
+        minWidth: "340px",
+        minHeight: "480px",
         perspective: "1200px",
         transformStyle: "preserve-3d",
       }}
@@ -217,7 +217,7 @@ export function AnimatedFolder({
         }}
       >
         <div
-          className="flex items-center justify-center gap-2 sm:gap-3 pointer-events-auto"
+          className="flex items-center justify-center gap-3 sm:gap-4 md:gap-5 pointer-events-auto flex-wrap"
           style={{
             perspective: "800px",
           }}
@@ -231,7 +231,7 @@ export function AnimatedFolder({
               <div
                 key={project.id}
                 onClick={(e) => handleCardNavigate(project, e)}
-                className="group/card relative w-14 sm:w-20 md:w-24 h-20 sm:h-28 md:h-36 rounded-lg sm:rounded-xl overflow-hidden border border-white/20 cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:shadow-[0_12px_40px_rgba(245,158,11,0.35)] hover:border-amber-400/80 hover:z-50 hover:scale-110"
+                className="group/card relative w-28 sm:w-36 md:w-44 h-40 sm:h-52 md:h-60 rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:shadow-[0_12px_40px_rgba(245,158,11,0.35)] hover:border-amber-400/80 hover:z-50 hover:scale-110"
                 style={{
                   transform: isOpen
                     ? `translateY(0px) scale(1) rotateY(${tiltY}deg)`
@@ -254,21 +254,21 @@ export function AnimatedFolder({
 
                 {/* Card Number Badge */}
                 <span
-                  className="absolute top-1 right-1 text-[7px] sm:text-[9px] font-mono font-bold px-1 sm:px-1.5 py-0.5 rounded bg-black/80 border border-white/15"
+                  className="absolute top-2 right-2 text-[9px] sm:text-[10px] font-mono font-bold px-1.5 sm:px-2 py-0.5 rounded bg-black/80 border border-white/15"
                   style={{ color: project.accentColor || "#f59e0b" }}
                 >
                   {project.cardNum}
                 </span>
 
                 {/* Title + Arrow overlay */}
-                <div className="absolute bottom-1 left-1 right-1 flex items-end justify-between gap-1">
+                <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between gap-1">
                   <div className="flex-1 min-w-0">
-                    <p className="text-[7px] sm:text-[9px] md:text-[10px] font-bold text-white truncate drop-shadow-md leading-tight">
+                    <p className="text-[10px] sm:text-xs md:text-sm font-bold text-white truncate drop-shadow-md leading-tight">
                       {project.title}
                     </p>
                   </div>
                   <ArrowRight
-                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-400 opacity-0 group-hover/card:opacity-100 transition-opacity shrink-0"
+                    className="w-3 h-3 sm:w-4 sm:h-4 text-amber-400 opacity-0 group-hover/card:opacity-100 transition-opacity shrink-0"
                   />
                 </div>
               </div>
