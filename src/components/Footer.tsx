@@ -1,11 +1,14 @@
 import React from 'react';
-import { Volume2, Heart } from 'lucide-react';
+import { Volume2, Heart, Sparkles } from 'lucide-react';
+import { ROUTES } from '../lib/router';
 
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const pageLinks = ROUTES.filter(r => r.id !== 'admin');
+
   return (
     <footer className="bg-[#050409] border-t border-purple-950/60 py-16 px-4 relative z-10">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -29,19 +32,19 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Quick Links */}
+        {/* Dedicated Pages Sitemap */}
         <div>
           <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-4">
-            Navigation
+            Pages Sitemap
           </h4>
           <ul className="space-y-2 text-xs text-slate-400">
-            {['services', 'logo-audio', 'brand-anthem', 'podcast-audio', 'commercial-songs', 'jingles', 'extras'].map((id) => (
-              <li key={id}>
+            {pageLinks.map((route) => (
+              <li key={route.id}>
                 <button
-                  onClick={() => onNavigate(id)}
-                  className="hover:text-purple-300 transition-colors uppercase tracking-wider font-mono text-[11px]"
+                  onClick={() => onNavigate(route.id)}
+                  className="hover:text-purple-300 transition-colors uppercase tracking-wider font-mono text-[11px] cursor-pointer"
                 >
-                  {id.replace('-', ' ')}
+                  {route.shortLabel} — {route.category}
                 </button>
               </li>
             ))}
@@ -51,14 +54,23 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         {/* Studio Info */}
         <div>
           <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-4">
-            Locations
+            Direct Contact
           </h4>
-          <ul className="space-y-2 text-xs text-slate-400">
-            <li>Los Angeles Studio • 90210</li>
-            <li>London Creative Hub • EC1A</li>
-            <li>Tokyo Sound Lab • Shibuya</li>
-            <li className="pt-2 text-purple-400">hello@hmmstudio.com</li>
-          </ul>
+          <div className="space-y-3 text-xs text-slate-400 font-mono">
+            <p className="text-slate-300">Get in touch for audio strategy, custom scoring, and sonic identity inquiries.</p>
+            <p className="pt-2 text-purple-400 font-bold text-sm">
+              <a href="mailto:om.hmmsounds@gmail.com" className="hover:text-purple-300 transition-colors">om.hmmsounds@gmail.com</a>
+            </p>
+          </div>
+
+          <div className="mt-6">
+            <button
+              onClick={() => onNavigate('contact')}
+              className="w-full py-2.5 px-4 rounded-xl bg-purple-950/60 border border-purple-800/40 text-purple-300 hover:text-white font-bold text-xs font-mono tracking-wider uppercase transition-colors cursor-pointer"
+            >
+              Start Project Inquiry
+            </button>
+          </div>
         </div>
 
       </div>

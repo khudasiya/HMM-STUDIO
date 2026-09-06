@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Shield } from 'lucide-react';
+import { Menu, X, Shield, Sparkles, Layers } from 'lucide-react';
 import { api } from '../lib/supabase';
+import { ROUTES } from '../lib/router';
 
 interface HeaderProps {
   currentSection: string;
@@ -10,15 +11,14 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ currentSection, onNavigate }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const checkAuth = () => setIsAdmin(api.isAdminAuthenticated());
     checkAuth();
     window.addEventListener('hmm_auth_update', checkAuth);
 
-    // Show sticky header only once scrolled past hero
-    const handleScroll = () => setVisible(window.scrollY > window.innerHeight * 0.85);
+    const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handleScroll);
 
     return () => {
@@ -35,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({ currentSection, onNavigate }) =>
   const navItems = [
     { id: 'hero',             label: 'HOME' },
     { id: 'services',         label: 'SERVICES' },
-    { id: 'logo-audio',       label: 'SONIC LOGOS' },
+    { id: 'logo-audio',       label: 'LOGOS' },
     { id: 'brand-anthem',     label: 'ANTHEMS' },
     { id: 'podcast-audio',    label: 'PODCAST' },
     { id: 'commercial-songs', label: 'COMMERCIAL' },
@@ -48,57 +48,81 @@ export const Header: React.FC<HeaderProps> = ({ currentSection, onNavigate }) =>
   ];
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        visible
-          ? 'translate-y-0 opacity-100'
-          : '-translate-y-full opacity-0 pointer-events-none'
-      }`}
-    >
+    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
       {/* Desktop */}
-      <div className="hidden lg:flex items-center justify-between px-6 py-2.5 bg-[#0a060c]/90 backdrop-blur-xl border-b border-purple-900/20 relative min-h-[52px]">
-        <button onClick={() => handleNavClick('hero')} className="flex items-center gap-2 group z-10">
-          <div className="w-7 h-7 rounded-full bg-purple-950/60 border border-purple-500/30 p-0.5 flex items-center justify-center">
+      <div className={`hidden lg:flex items-center justify-between px-6 py-2.5 transition-all duration-300 ${
+        scrolled || currentSection !== 'hero'
+          ? 'bg-[#0a060c]/95 backdrop-blur-xl border-b border-purple-900/30 shadow-2xl shadow-purple-950/40'
+          : 'bg-[#0a060c]/60 backdrop-blur-md border-b border-purple-900/10'
+      }`}>
+        <button onClick={() => handleNavClick('hero')} className="flex items-center gap-2 group z-10 cursor-pointer">
+          <div className="w-8 h-8 rounded-full bg-purple-950/80 border border-purple-500/40 p-0.5 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
             <img src="/assets/logo.webp" alt="Hmm Studio" className="w-full h-full object-contain rounded-full" />
           </div>
-          <span className="text-sm font-bold text-white tracking-tight group-hover:text-purple-300 transition-colors">Hmm Studio</span>
+          <span className="text-sm font-extrabold text-white tracking-tight group-hover:text-purple-300 transition-colors">Hmm Studio</span>
         </button>
 
-        <nav className="flex items-center gap-0.5 bg-[#100b1d]/70 border border-purple-900/40 rounded-lg p-1 backdrop-blur-md absolute left-1/2 -translate-x-1/2">
+        <nav className="flex items-center gap-0.5 bg-[#100b1d]/80 border border-purple-900/40 rounded-xl p-1 backdrop-blur-md shadow-xl">
           {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => handleNavClick(item.id)}
-              className={`px-3 py-1.5 text-[10px] font-semibold tracking-wider rounded transition-all ${
+              className={`px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider rounded-lg transition-all cursor-pointer uppercase ${
                 currentSection === item.id
-                  ? 'bg-purple-600/30 text-white border border-purple-400/40'
-                  : 'text-slate-300 hover:text-white hover:bg-purple-900/20 border border-transparent'
+                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/50'
+                  : 'text-slate-300 hover:text-white hover:bg-purple-900/30'
               }`}
             >
               {item.label}
             </button>
           ))}
         </nav>
+
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <button
+              onClick={() => handleNavClick('admin')}
+              className="px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold flex items-center gap-1 hover:bg-amber-500/30 transition-colors"
+            >
+              <Shield className="w-3.5 h-3.5" /> Admin
+            </button>
+          )}
+
+          <button
+            onClick={() => handleNavClick('contact')}
+            className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-mono font-bold tracking-wider uppercase shadow-lg transition-all cursor-pointer hover:scale-105"
+          >
+            Start Project
+          </button>
+        </div>
       </div>
 
       {/* Mobile */}
-      <div className="lg:hidden flex items-center justify-between px-4 py-2.5 bg-[#0a060c]/90 backdrop-blur-xl border-b border-purple-900/20">
+      <div className={`lg:hidden flex items-center justify-between px-4 py-2.5 transition-all ${
+        scrolled || currentSection !== 'hero'
+          ? 'bg-[#0a060c]/95 backdrop-blur-xl border-b border-purple-900/30'
+          : 'bg-[#0a060c]/70 backdrop-blur-md'
+      }`}>
         <button onClick={() => handleNavClick('hero')} className="flex items-center gap-2">
           <img src="/assets/logo.webp" alt="Logo" className="w-6 h-6 rounded-full object-contain" />
-          <span className="font-bold text-sm text-white">Hmm Studio</span>
+          <span className="font-extrabold text-sm text-white">Hmm Studio</span>
         </button>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1.5 rounded bg-purple-950/40 border border-purple-800/40 text-purple-300">
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1.5 rounded-lg bg-purple-950/60 border border-purple-800/40 text-purple-300">
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#0a060c]/95 backdrop-blur-2xl border-b border-purple-900/40 px-4 py-3 grid grid-cols-2 gap-2">
+        <div className="lg:hidden bg-[#0a060c]/98 backdrop-blur-2xl border-b border-purple-900/40 px-4 py-4 grid grid-cols-2 gap-2 shadow-2xl">
           {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => handleNavClick(item.id)}
-              className="py-2 px-3 bg-purple-950/20 border border-purple-900/30 text-xs text-slate-300 font-bold tracking-wider rounded text-left uppercase"
+              className={`py-2.5 px-3 rounded-xl text-xs font-mono font-bold tracking-wider text-left uppercase transition-all ${
+                currentSection === item.id
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-purple-950/40 border border-purple-900/30 text-slate-300 hover:text-white'
+              }`}
             >
               {item.label}
             </button>

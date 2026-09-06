@@ -3,6 +3,7 @@ import { AudioProvider } from './context/AudioContext';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ServicesSection } from './components/ServicesSection';
+import { CardWalletShowcase } from './components/CardWalletShowcase';
 import { NavRingSection } from './components/NavRingSection';
 import { LogoAudioSection } from './components/LogoAudioSection';
 import { BrandAnthemSection } from './components/BrandAnthemSection';
@@ -16,14 +17,33 @@ import { AboutSection } from './components/AboutSection';
 import { ContactSection } from './components/ContactSection';
 import { AdminPortal } from './components/AdminPortal';
 import { Footer } from './components/Footer';
+import { FloatingPlayer } from './components/FloatingPlayer';
 
-import { api } from './lib/supabase';
+import { api, subscribeToDatabaseChanges } from './lib/supabase';
 import { AudioItem, BlogPost, VideoItem } from './types/portfolio';
+import { getSectionIdFromPath, navigateToSection, ROUTES } from './lib/router';
+import { Sparkles, ArrowRight, Layers, Zap, Music, Mic, Radio, Volume2, Film, BookOpen, Compass, User, Mail } from 'lucide-react';
+
+const iconMap: Record<string, React.ReactNode> = {
+  hero: <Sparkles className="w-5 h-5 text-purple-400" />,
+  services: <Layers className="w-5 h-5 text-purple-400" />,
+  'logo-audio': <Zap className="w-5 h-5 text-purple-400" />,
+  'brand-anthem': <Music className="w-5 h-5 text-indigo-400" />,
+  'podcast-audio': <Mic className="w-5 h-5 text-sky-400" />,
+  'commercial-songs': <Radio className="w-5 h-5 text-emerald-400" />,
+  jingles: <Volume2 className="w-5 h-5 text-amber-400" />,
+  extras: <Film className="w-5 h-5 text-rose-400" />,
+  blog: <BookOpen className="w-5 h-5 text-orange-400" />,
+  process: <Compass className="w-5 h-5 text-teal-400" />,
+  about: <User className="w-5 h-5 text-purple-300" />,
+  contact: <Mail className="w-5 h-5 text-pink-400" />,
+};
 
 export function AppContent() {
   const [currentSection, setCurrentSection] = useState<string>(() => {
-    return window.location.pathname === '/admin' ? 'admin' : 'hero';
+    return getSectionIdFromPath(window.location.pathname);
   });
+
   const [audioItems, setAudioItems] = useState<AudioItem[]>([]);
   const [videoItems, setVideoItems] = useState<VideoItem[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -40,106 +60,115 @@ export function AppContent() {
   useEffect(() => {
     loadData();
 
-    // Listen for storage updates triggered from Admin Portal
-    const handleStorageUpdate = () => {
-      loadData();
-    };
+    const handleStorageUpdate = () => loadData();
 
     const handlePopState = () => {
-      if (window.location.pathname === '/admin') {
-        setCurrentSection('admin');
-      } else {
-        setCurrentSection('hero');
-      }
+      const section = getSectionIdFromPath(window.location.pathname);
+      setCurrentSection(section);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     window.addEventListener('hmm_storage_update', handleStorageUpdate);
     window.addEventListener('popstate', handlePopState);
+
+    // Subscribe to Supabase Realtime multi-client live updates
+    const unsubscribeRealtime = subscribeToDatabaseChanges(() => {
+      loadData();
+    });
+
     return () => {
       window.removeEventListener('hmm_storage_update', handleStorageUpdate);
       window.removeEventListener('popstate', handlePopState);
+      unsubscribeRealtime();
     };
   }, []);
 
   const handleNavigate = (sectionId: string) => {
-    if (sectionId === 'admin') {
-      window.history.pushState({}, '', '/admin');
-      setCurrentSection('admin');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      if (window.location.pathname === '/admin') {
-        window.history.pushState({}, '', '/');
-      }
-      setCurrentSection(sectionId);
-      const el = document.getElementById(sectionId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }
+    navigateToSection(sectionId);
+    setCurrentSection(sectionId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Render Dedicated Admin Page
   if (currentSection === 'admin' || window.location.pathname === '/admin') {
     return (
-      <div className="min-h-screen bg-[#08060e] text-slate-100">
+      <div className="min-h-screen bg-[#08060e] text-slate-100 selection:bg-purple-600 selection:text-white">
         <Header currentSection="admin" onNavigate={handleNavigate} />
         <AdminPortal onDataChange={loadData} onBackToSite={() => handleNavigate('hero')} />
         <Footer onNavigate={handleNavigate} />
+        <FloatingPlayer onNavigate={handleNavigate} />
       </div>
     );
   }
 
+  // Subpage routes: Render dedicated page layout for each section individually
+  const renderDedicatedPage = () => {
+    switch (currentSection) {
+      case 'services':
+        return <ServicesSection onNavigate={handleNavigate} isStandalonePage />;
+      case 'logo-audio':
+        return <LogoAudioSection items={audioItems} onNavigate={handleNavigate} isStandalonePage />;
+      case 'brand-anthem':
+        return <BrandAnthemSection items={audioItems} onNavigate={handleNavigate} isStandalonePage />;
+      case 'podcast-audio':
+        return <PodcastAudioSection items={audioItems} onNavigate={handleNavigate} isStandalonePage />;
+      case 'commercial-songs':
+        return <CommercialSongsSection items={audioItems} onNavigate={handleNavigate} isStandalonePage />;
+      case 'jingles':
+        return <JingleSection items={audioItems} onNavigate={handleNavigate} isStandalonePage />;
+      case 'extras':
+        return <ExtrasSection audioItems={audioItems} videoItems={videoItems} onNavigate={handleNavigate} isStandalonePage />;
+      case 'blog':
+        return <BlogSection posts={blogPosts} onNavigate={handleNavigate} isStandalonePage />;
+      case 'process':
+        return <ProcessSection onNavigate={handleNavigate} isStandalonePage />;
+      case 'about':
+        return <AboutSection onNavigate={handleNavigate} isStandalonePage />;
+      case 'contact':
+        return <ContactSection onNavigate={handleNavigate} isStandalonePage />;
+      default:
+        return null;
+    }
+  };
+
+  const isSubPage = currentSection !== 'hero';
+
   return (
-    <div className="min-h-screen bg-[#08060e] text-slate-100 selection:bg-purple-600 selection:text-white">
+    <div className="min-h-screen bg-[#08060e] text-slate-100 selection:bg-purple-600 selection:text-white relative">
       <Header currentSection={currentSection} onNavigate={handleNavigate} />
       
       <main>
-        {/* 1. Hero Section (Matching Reference Image) */}
-        <Hero 
-          items={audioItems} 
-          onStartProject={() => handleNavigate('contact')}
-          onExploreWork={() => handleNavigate('logo-audio')}
-        />
+        {isSubPage ? (
+          /* Render standalone dedicated page */
+          <div className="min-h-[70vh] animate-fade-in">
+            {renderDedicatedPage()}
+          </div>
+        ) : (
+          /* Render Full Home Showcase Page */
+          <div className="space-y-12">
+            {/* 1. Hero Showcase */}
+            <Hero 
+              items={audioItems} 
+              onStartProject={() => handleNavigate('contact')}
+              onExploreWork={() => handleNavigate('commercial-songs')}
+            />
 
-        {/* Services Overview */}
-        <ServicesSection onNavigate={handleNavigate} />
+            {/* 2. 3D Interactive Card Wallet Dispenser */}
+            <CardWalletShowcase onNavigate={handleNavigate} />
 
-        {/* Interactive Navigation Ring Wheel & Rotator Slider */}
-        <NavRingSection onNavigate={handleNavigate} currentSection={currentSection} />
+            {/* Services Overview */}
+            <ServicesSection onNavigate={handleNavigate} />
 
-        {/* 3. Logo Audio Section */}
-        <LogoAudioSection items={audioItems} />
-
-        {/* 4. Brand Anthem Section */}
-        <BrandAnthemSection items={audioItems} />
-
-        {/* 5. Podcast Audio Section */}
-        <PodcastAudioSection items={audioItems} />
-
-        {/* 6. Commercial Songs Section */}
-        <CommercialSongsSection items={audioItems} />
-
-        {/* 7. Jingle Section */}
-        <JingleSection items={audioItems} />
-
-        {/* 8. Extras Section (Mini Stingers & Videos) */}
-        <ExtrasSection audioItems={audioItems} videoItems={videoItems} />
-
-        {/* 2. Blog Section */}
-        <BlogSection posts={blogPosts} />
-
-        {/* Our Process Framework */}
-        <ProcessSection />
-
-        {/* About Hmm Studio & Testimonials */}
-        <AboutSection />
-
-        {/* Contact Section */}
-        <ContactSection />
+            {/* Framework, About & Contact Details */}
+            <ProcessSection onNavigate={handleNavigate} />
+            <AboutSection onNavigate={handleNavigate} />
+            <ContactSection onNavigate={handleNavigate} />
+          </div>
+        )}
       </main>
 
       <Footer onNavigate={handleNavigate} />
+      <FloatingPlayer onNavigate={handleNavigate} />
     </div>
   );
 }

@@ -151,8 +151,8 @@ function InfiniteArcCarousel({
       onMouseLeave={() => { pausedRef.current = false; }}
     >
       {/* Left/right fade masks */}
-      <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-r from-[#140d14] to-transparent z-30 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-l from-[#140d14] to-transparent z-30 pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-r from-[#090610] to-transparent z-30 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-l from-[#090610] to-transparent z-30 pointer-events-none" />
 
       <div
         ref={stripRef}
@@ -207,7 +207,7 @@ function InfiniteArcCarousel({
 /* ═══════════════════════════════════════════════════
    Hero Section Component
    ═══════════════════════════════════════════════════ */
-export const Hero: React.FC<HeroProps> = ({ items, onStartProject, onExploreWork }) => {
+export const Hero: React.FC<HeroProps> = ({ items, onStartProject }) => {
   const { currentTrack, isPlaying, togglePlay, currentTime, duration, seek, waveformFrequencies } = useAudio();
   const [isPickingRandom, setIsPickingRandom] = useState(false);
   const [poppedCard, setPoppedCard] = useState<{
@@ -248,60 +248,51 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject, onExploreWork
   const progress = duration > 0 ? currentTime / duration : 0;
 
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center bg-black overflow-hidden">
+    <section className="relative w-full min-h-screen flex items-center justify-center bg-[#07050c] overflow-hidden authkit-grid">
 
-      {/* Ambient glow behind the panel */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden>
-        <div className="w-[80%] h-[70%] rounded-[40px] bg-gradient-to-br from-purple-800/30 via-amber-700/15 to-purple-900/25 blur-[100px]" />
-      </div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[55%] rounded-full bg-amber-600/10 blur-[120px] pointer-events-none" aria-hidden />
+      {/* AuthKit Ambient Spotlight Beams */}
+      <div className="absolute inset-0 pointer-events-none authkit-spotlight-1" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-purple-600/10 blur-[160px] pointer-events-none rounded-full" />
+
+      {/* AuthKit Architectural Crosshairs (+) */}
+      <div className="absolute top-24 left-8 text-xs font-mono text-purple-400/40 select-none pointer-events-none hidden md:block">+</div>
+      <div className="absolute top-24 right-8 text-xs font-mono text-purple-400/40 select-none pointer-events-none hidden md:block">+</div>
+      <div className="absolute bottom-12 left-8 text-xs font-mono text-purple-400/40 select-none pointer-events-none hidden md:block">+</div>
+      <div className="absolute bottom-12 right-8 text-xs font-mono text-purple-400/40 select-none pointer-events-none hidden md:block">+</div>
 
       {/* ── THE HERO PANEL ── */}
-      <div className="relative w-full h-full min-h-screen overflow-hidden bg-gradient-to-b from-[#1a1018] via-[#140d14] to-[#100a10] z-10 flex flex-col justify-between">
+      <div className="relative w-full h-full min-h-screen overflow-hidden z-10 flex flex-col justify-between pt-24 pb-8">
 
         <div>
-          {/* 1. Top Marquee */}
-          <div className="w-full py-2 overflow-hidden border-b border-[#2a1c26]/50">
-            <div className="animate-marquee whitespace-nowrap text-[11px] tracking-[0.25em] text-[#8a6f82]/60 uppercase font-mono select-none">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <span key={i} className="mx-8">SUBSCRIBE TO OUR NEWS LETTER</span>
-              ))}
+          {/* AuthKit Brand Header & Micro Badge */}
+          <div className="flex flex-col items-center pt-2 pb-2 text-center">
+            
+            {/* Pill Badge */}
+            <div className="authkit-badge mb-4">
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+              <span>SONIC BRANDING ARCHITECTURE</span>
             </div>
-          </div>
 
-          {/* 2. Nav Bar */}
-          <nav className="hidden sm:flex items-center justify-center py-2.5 border-b border-[#2a1c26]/40 text-[11px] sm:text-xs tracking-[0.2em] uppercase font-mono text-[#c5aebe] select-none">
-            {[
-              { id: 'hero',     label: 'Home' },
-              { id: 'services', label: 'Product' },
-              { id: 'process',  label: 'How' },
-              { id: 'about',    label: 'About' },
-              { id: 'contact',  label: 'Contact' },
-            ].map((item, i, arr) => (
-              <React.Fragment key={item.id}>
-                <button
-                  onClick={() => {
-                    const el = document.getElementById(item.id);
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="px-5 py-1 hover:text-white transition-colors cursor-pointer"
-                >
-                  {item.label}
-                </button>
-                {i < arr.length - 1 && <span className="w-px h-3 bg-[#3a2834]" />}
-              </React.Fragment>
-            ))}
-          </nav>
-
-          {/* 3. Brand Mark */}
-          <div className="flex flex-col items-center pt-8 pb-2">
-            <div className="w-10 h-10 rounded-full bg-[#1e1220] border border-[#3d2a38] p-1.5 flex items-center justify-center shadow-lg mb-2">
-              <img src="/assets/logo.webp" alt="Hmm Studio" className="w-full h-full object-contain rounded-full" />
+            {/* Brand Logo & Name */}
+            <div className="flex items-center gap-2.5 mb-2 group cursor-pointer">
+              <div className="relative w-9 h-9 rounded-full bg-[#160d22] border border-purple-500/40 p-1 flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:border-purple-400 group-hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] transition-all duration-300">
+                <img src="/assets/logo.webp" alt="Hmm Studio" className="w-full h-full object-contain rounded-full transition-transform group-hover:rotate-12 duration-300" />
+              </div>
+              <span className="text-sm font-mono tracking-widest text-slate-200 uppercase font-semibold group-hover:text-purple-300 transition-colors">Hmm Studio</span>
             </div>
-            <p className="text-[13px] sm:text-sm tracking-widest text-[#d4c3cf] font-medium flex items-center gap-1.5">
-              <span className="text-[#a88ea0] text-base">✦</span>
-              Hmm Studio
-            </p>
+
+            {/* AuthKit Interactive Metallic Headline */}
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-gradient-silver max-w-2xl mx-auto px-4 mt-2 mb-3 leading-tight group cursor-default select-none">
+              <span className="inline-block mr-1 transition-all duration-300 group-hover:drop-shadow-[0_0_20px_rgba(168,85,247,0.7)]" style={{ background: 'linear-gradient(180deg, #C084FC 0%, #A855F7 60%, #9333EA 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                The
+              </span>
+              <span className="inline-block transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-300 group-hover:via-amber-300 group-hover:to-cyan-300 group-hover:scale-105">
+                world’s finest
+              </span>{' '}
+              <span className="inline-block transition-all duration-300 group-hover:text-purple-300 group-hover:drop-shadow-[0_0_25px_rgba(192,132,252,0.9)]">
+                audio identity system.
+              </span>
+            </h1>
           </div>
 
           {/* 4. INFINITE 3D ARC CAROUSEL */}
@@ -315,20 +306,18 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject, onExploreWork
         </div>
 
         <div>
-          {/* 5. Tagline */}
-          <div className="max-w-lg mx-auto text-center px-6 pt-2 pb-2">
-            <p className="text-xs sm:text-[13px] leading-relaxed text-[#9a8592] font-normal">
-              Bring your story to life with bespoke sonic signatures. Experience flawless
-              consistency, perfect proportions, and impeccable perspective in every
-              frame.
+          {/* Tagline */}
+          <div className="max-w-xl mx-auto text-center px-6 pt-2 pb-2">
+            <p className="text-xs sm:text-sm leading-relaxed text-slate-300 font-normal">
+              Engineered for seamless audio recognition, high-precision sonic logos, and unforgettable brand scores across all digital touchpoints.
             </p>
           </div>
 
-          {/* 6. CTA Buttons with Pick Random */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-4 pb-8 px-6">
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-4 pb-6 px-6">
             <button
               onClick={onStartProject}
-              className="px-6 py-2.5 rounded-full bg-[#e8e0e5] text-[#1a1018] font-semibold text-xs sm:text-sm tracking-wide hover:bg-white transition-colors shadow-md"
+              className="authkit-btn-primary cursor-pointer text-xs uppercase tracking-wider font-bold"
             >
               Get Started Now
             </button>
@@ -337,44 +326,25 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject, onExploreWork
             <button
               onClick={handlePickRandom}
               disabled={isPickingRandom}
-              className={`px-6 py-2.5 rounded-full border text-xs sm:text-sm font-semibold tracking-wide transition-all flex items-center gap-2 shadow-lg cursor-pointer ${
+              className={`authkit-btn-secondary cursor-pointer text-xs font-mono uppercase tracking-wider flex items-center gap-2 ${
                 isPickingRandom && !poppedCard
-                  ? 'bg-purple-600 text-white border-purple-400 animate-pulse'
-                  : 'bg-purple-950/70 text-purple-200 border-purple-500/50 hover:bg-purple-900 hover:border-purple-400 hover:text-white hover:shadow-purple-900/40'
+                  ? 'border-purple-400 bg-purple-900 text-white'
+                  : ''
               }`}
             >
-              <Sparkles className={`w-4 h-4 ${isPickingRandom && !poppedCard ? 'animate-spin text-white' : 'text-purple-400'}`} />
+              <Sparkles className={`w-3.5 h-3.5 ${isPickingRandom && !poppedCard ? 'animate-spin text-white' : 'text-purple-400'}`} />
               {isPickingRandom && !poppedCard ? 'Picking Random...' : 'Pick Random'}
-            </button>
-
-            <button
-              onClick={onExploreWork}
-              className="px-6 py-2.5 rounded-full bg-transparent border border-[#3d2a38] text-[#b8a2b1] font-medium text-xs sm:text-sm tracking-wide hover:border-[#6d4f64] hover:text-white transition-colors"
-            >
-              Case studies
             </button>
           </div>
         </div>
 
-        {/* 7. Credit badge */}
-        <div className="absolute bottom-4 right-5 pointer-events-none">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e1420]/80 border border-[#2e1f2a]/60 text-[10px] text-[#8a6f82] font-mono tracking-wider backdrop-blur-sm">
-            <span className="text-xs">✦</span> Hmm Studio
-          </span>
-        </div>
-
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          POPPED UP RANDOM CARD MODAL OVERLAY
-          ═══════════════════════════════════════════════════════════════ */}
+      {/* POPPED UP RANDOM CARD MODAL OVERLAY */}
       {poppedCard && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-fade-in">
-
-          {/* Modal Container */}
-          <div className="relative w-full max-w-md bg-[#130b18] border border-purple-500/40 rounded-3xl p-6 shadow-2xl shadow-purple-950/80 flex flex-col items-center gap-5 text-center transition-all transform scale-100">
-
-            {/* Close Button (X) */}
+          <div className="relative w-full max-w-md bg-[#0f0a1c] border border-purple-500/40 rounded-3xl p-6 shadow-2xl flex flex-col items-center gap-5 text-center">
+            
             <button
               onClick={handleCloseModal}
               className="absolute top-4 right-4 w-9 h-9 rounded-full bg-purple-950/80 border border-purple-700/50 flex items-center justify-center text-purple-200 hover:text-white hover:bg-purple-800 transition-colors shadow-lg cursor-pointer"
@@ -383,13 +353,11 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject, onExploreWork
               <X className="w-5 h-5" />
             </button>
 
-            {/* Top Label */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-900/40 border border-purple-600/40 text-[11px] font-mono text-purple-300 tracking-wider uppercase">
               <Sparkles className="w-3.5 h-3.5 text-purple-400" />
               Random Selection
             </div>
 
-            {/* Large Card Artwork */}
             <div className="relative w-56 h-72 rounded-2xl overflow-hidden border-2 border-purple-500/60 shadow-2xl bg-[#0d0710] group">
               <img
                 src={poppedCard.galleryCard.src}
@@ -399,7 +367,6 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject, onExploreWork
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             </div>
 
-            {/* Music Info */}
             <div className="space-y-1">
               <h3 className="text-xl font-bold text-white tracking-tight">{poppedCard.audioItem.title}</h3>
               <p className="text-xs font-mono text-purple-300/80 tracking-wide uppercase">
@@ -407,8 +374,7 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject, onExploreWork
               </p>
             </div>
 
-            {/* Canvas Waveform Visualizer */}
-            <div className="w-full bg-[#1c1024] border border-purple-900/50 rounded-xl p-3 space-y-2">
+            <div className="w-full bg-[#160d24] border border-purple-900/50 rounded-xl p-3 space-y-2">
               <WaveformVisualizer
                 frequencies={waveformFrequencies.length > 0 ? waveformFrequencies : generateWaveformData(1, 40)}
                 isPlaying={!!isPoppedItemPlaying}
@@ -425,11 +391,10 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject, onExploreWork
               </div>
             </div>
 
-            {/* Action Buttons: Play/Pause + Close */}
             <div className="flex items-center gap-3 w-full pt-1">
               <button
                 onClick={() => togglePlay(poppedCard.audioItem)}
-                className="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-purple-900/50 transition-colors cursor-pointer"
+                className="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-purple-900/50 transition-colors cursor-pointer"
               >
                 {isPoppedItemPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
                 {isPoppedItemPlaying ? 'Pause Track' : 'Play Track'}
@@ -437,7 +402,7 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject, onExploreWork
 
               <button
                 onClick={handleCloseModal}
-                className="px-5 py-3 rounded-xl bg-purple-950/60 border border-purple-800/40 text-purple-300 hover:text-white hover:bg-purple-900 font-medium text-xs tracking-wide transition-colors cursor-pointer"
+                className="px-5 py-3 rounded-xl bg-purple-950/60 border border-purple-800/40 text-purple-300 hover:text-white hover:bg-purple-900 font-bold text-xs tracking-wider transition-colors cursor-pointer"
               >
                 Close & Resume
               </button>
@@ -451,7 +416,6 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject, onExploreWork
   );
 };
 
-/* Helper function to format seconds to M:SS */
 function formatTime(secs: number): string {
   const m = Math.floor(secs / 60);
   const s = Math.floor(secs % 60);

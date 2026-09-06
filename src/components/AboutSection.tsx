@@ -1,127 +1,167 @@
 import React from 'react';
-import { CLIENT_TESTIMONIALS } from '../data/mockData';
-import { Quote, Sparkles, Award, Headphones, Waves } from 'lucide-react';
+import { User, Award, Music, Cpu, Sparkles, Heart, Headphones, CheckCircle2 } from 'lucide-react';
+import { PageHeader } from './PageHeader';
 
-export const AboutSection: React.FC = () => {
-  const clientLogos = ['NEONPULSE', 'VERVE PAY', 'AURA LUXURY', 'VOLTA EV', 'FRESHBITE', 'KRYPTOS'];
+interface AboutSectionProps {
+  onNavigate?: (sectionId: string) => void;
+  isStandalonePage?: boolean;
+}
+
+export const AboutSection: React.FC<AboutSectionProps> = ({ 
+  onNavigate, 
+  isStandalonePage = false 
+}) => {
+  const teamMembers = [
+    {
+      name: 'Julian Vance',
+      role: 'Creative Director & Founder',
+      bio: 'Former Hans Zimmer apprentice & Dolby Atmos master engineer with 14+ years in sound design.',
+      avatar: '/assets/card1.png'
+    },
+    {
+      name: 'Elena Rostova',
+      role: 'Head of Audio Strategy',
+      bio: 'Cognitive acoustic researcher specializing in psychoacoustics & auditory memory retention.',
+      avatar: '/assets/hero-waveform.png'
+    },
+    {
+      name: 'Marcus Chen',
+      role: 'Lead Sound Sculptor',
+      bio: 'Modular synthesis specialist & UI sound designer for global fintech & hardware platforms.',
+      avatar: '/assets/hero-anthem.png'
+    }
+  ];
+
+  const gearStack = [
+    'Neumann U87 Ai & Sennheiser MKH 416 Microphones',
+    'Moog One & Prophet 6 Analog Synthesizers',
+    'Universal Audio Apollo X16 Heritage Systems',
+    'Barefoot Sound Footprint01 Studio Monitors',
+    'Pro Tools Ultimate HDX & Ableton Live 12 Suite',
+    'Dolby Atmos 7.1.4 Spatial Sound Architecture'
+  ];
 
   return (
-    <section id="about" className="py-24 px-4 max-w-7xl mx-auto relative z-10 scroll-mt-20">
+    <section id="about" className={`py-12 px-4 max-w-7xl mx-auto relative z-10 ${isStandalonePage ? '' : 'scroll-mt-20'}`}>
       
-      {/* About Studio Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24">
-        <div>
+      {isStandalonePage && onNavigate && (
+        <PageHeader
+          title="About Hmm Studio"
+          subtitle="We are a boutique sonic branding agency and sound design studio crafting acoustic identities for visionary brands, tech products, & creators worldwide."
+          category="Our Team & Studio"
+          icon={User}
+          currentSectionId="about"
+          onNavigate={onNavigate}
+        />
+      )}
+
+      {!isStandalonePage && (
+        <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-mono uppercase tracking-widest text-purple-400 bg-purple-950/60 border border-purple-800/40 px-3 py-1 rounded-full">
-            ABOUT HMM STUDIO
+            ABOUT STUDIO
           </span>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-4 mb-6 leading-tight">
-            We Craft the Invisible Architecture of Brands
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-4 mb-4">
+            Architects of Audio Identity
           </h2>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
-            Hmm Studio is a boutique sonic branding agency based at the intersection of music production, cognitive neuroscience, and audio technology. We believe every iconic brand deserves a sound signature as distinct as its visual logo.
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+            We bridge psychoacoustics, cinematic composition, and modern sound design to create distinct auditory DNA for world-class brands.
           </p>
-          <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mb-8">
-            Whether engineering 2-second payment confirmation stingers or composing multi-movement orchestral anthems, our team fuses bespoke analog synthesis, live acoustic instruments, and spatial audio mastering to guarantee immediate emotional connection.
-          </p>
+        </div>
+      )}
 
-          <div className="grid grid-cols-3 gap-4 border-t border-purple-900/40 pt-6">
-            <div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-white font-mono">120+</p>
-              <p className="text-xs text-purple-400 font-semibold mt-1">Sonic Logos Built</p>
-            </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-white font-mono">14</p>
-              <p className="text-xs text-purple-400 font-semibold mt-1">Global Awards</p>
-            </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-white font-mono">45M+</p>
-              <p className="text-xs text-purple-400 font-semibold mt-1">Daily Listeners</p>
-            </div>
-          </div>
+      {/* Studio Impact Stats Banner */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+        <div className="bg-[#0f0a1c]/80 border border-purple-900/40 rounded-2xl p-6 text-center">
+          <span className="text-3xl sm:text-4xl font-extrabold text-purple-400 font-mono">500+</span>
+          <p className="text-xs text-slate-300 font-mono uppercase tracking-wider mt-1">Sonic Logos Crafted</p>
         </div>
 
-        {/* Feature Cards Graphic */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-purple-600/20 rounded-3xl blur-3xl pointer-events-none"></div>
-          <div className="glass-panel border border-purple-500/30 rounded-3xl p-8 relative space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-950/80 border border-purple-500/40 flex items-center justify-center shrink-0">
-                <Headphones className="w-6 h-6 text-purple-300" />
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-white">Audio-First Architecture</h4>
-                <p className="text-xs text-slate-300/80 mt-1 leading-relaxed">
-                  We don't buy off-the-shelf stock loops. Every frequency, harmonic tone, and transient decay is custom synthesized for your brand.
-                </p>
-              </div>
-            </div>
+        <div className="bg-[#0f0a1c]/80 border border-purple-900/40 rounded-2xl p-6 text-center">
+          <span className="text-3xl sm:text-4xl font-extrabold text-purple-400 font-mono">98%</span>
+          <p className="text-xs text-slate-300 font-mono uppercase tracking-wider mt-1">Brand Recall Rate</p>
+        </div>
 
-            <div className="flex items-start gap-4 border-t border-purple-900/40 pt-6">
-              <div className="w-12 h-12 rounded-xl bg-purple-950/80 border border-purple-500/40 flex items-center justify-center shrink-0">
-                <Waves className="w-6 h-6 text-lavender-light" />
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-white">Emotional Memory Tuning</h4>
-                <p className="text-xs text-slate-300/80 mt-1 leading-relaxed">
-                  Our compositions leverage psychoacoustic principles to trigger subconscious brand recall in less than 500 milliseconds.
-                </p>
-              </div>
-            </div>
+        <div className="bg-[#0f0a1c]/80 border border-purple-900/40 rounded-2xl p-6 text-center">
+          <span className="text-3xl sm:text-4xl font-extrabold text-purple-400 font-mono">45</span>
+          <p className="text-xs text-slate-300 font-mono uppercase tracking-wider mt-1">Global Audio Awards</p>
+        </div>
 
-            <div className="flex items-start gap-4 border-t border-purple-900/40 pt-6">
-              <div className="w-12 h-12 rounded-xl bg-purple-950/80 border border-purple-500/40 flex items-center justify-center shrink-0">
-                <Award className="w-6 h-6 text-amber-400" />
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-white">Worldwide Royalty-Free License</h4>
-                <p className="text-xs text-slate-300/80 mt-1 leading-relaxed">
-                  Full commercial ownership, master stem packages, and audio brand guideline PDFs delivered with every project.
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="bg-[#0f0a1c]/80 border border-purple-900/40 rounded-2xl p-6 text-center">
+          <span className="text-3xl sm:text-4xl font-extrabold text-purple-400 font-mono">100%</span>
+          <p className="text-xs text-slate-300 font-mono uppercase tracking-wider mt-1">Royalty Free Rights</p>
         </div>
       </div>
 
-      {/* Client Logos Wall */}
-      <div className="mb-20">
-        <p className="text-center text-xs font-mono uppercase tracking-widest text-purple-400/80 mb-8">
-          TRUSTED BY VISIONARY BRANDS WORLDWIDE
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 opacity-75">
-          {clientLogos.map((logo, idx) => (
-            <span 
-              key={idx} 
-              className="text-base sm:text-xl font-extrabold tracking-widest text-slate-400 hover:text-purple-300 transition-colors font-mono"
-            >
-              {logo}
-            </span>
-          ))}
+      {/* Team Showcase */}
+      <div className="mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <span className="text-xs font-mono uppercase tracking-widest text-purple-400 font-bold">
+            CREATIVE LEADERSHIP
+          </span>
+          <h3 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
+            Meet Our Audio Designers & Composers
+          </h3>
         </div>
-      </div>
 
-      {/* Client Testimonials */}
-      <div>
-        <h3 className="text-2xl font-extrabold text-white text-center mb-10">
-          Client Endorsements
-        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {CLIENT_TESTIMONIALS.map((t) => (
-            <div key={t.id} className="glass-panel rounded-2xl p-6 border border-purple-900/40 flex flex-col justify-between">
+          {teamMembers.map((member) => (
+            <div
+              key={member.name}
+              className="bg-[#0f0a1c]/80 border border-purple-900/40 rounded-2xl p-6 flex flex-col justify-between hover:border-purple-500/50 transition-all"
+            >
               <div>
-                <Quote className="w-8 h-8 text-purple-500/40 mb-3" />
-                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed italic mb-6">
-                  "{t.quote}"
-                </p>
-              </div>
-              <div className="border-t border-purple-900/40 pt-4">
-                <p className="text-sm font-bold text-white">{t.clientName}</p>
-                <p className="text-xs text-purple-400 font-mono">{t.clientRole}, <span className="text-slate-300">{t.company}</span></p>
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-purple-500/40 mb-4 bg-purple-950">
+                  <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
+                </div>
+                <h4 className="text-lg font-bold text-white">{member.name}</h4>
+                <span className="text-xs font-mono text-purple-400 font-semibold">{member.role}</span>
+                <p className="text-xs text-slate-300/80 leading-relaxed mt-3">{member.bio}</p>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Standalone Tech Stack & Studio Gear */}
+      {isStandalonePage && (
+        <div className="space-y-12 border-t border-purple-900/40 pt-16">
+          
+          <div className="bg-[#0f0a1c]/90 border border-purple-500/30 rounded-3xl p-8 sm:p-10">
+            <div className="flex items-center gap-3 mb-6">
+              <Cpu className="w-6 h-6 text-purple-400" />
+              <h3 className="text-2xl font-extrabold text-white">Our Acoustic & Software Hardware Stack</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {gearStack.map((gear, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 bg-purple-950/30 border border-purple-900/40 rounded-xl text-xs text-slate-200">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span>{gear}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA */}
+          {onNavigate && (
+            <div className="bg-gradient-to-r from-purple-950/60 to-[#120b22] border border-purple-900/60 rounded-3xl p-8 text-center flex flex-col items-center">
+              <h4 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                Want to collaborate with our studio team?
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-lg mb-6">
+                Let's discuss how we can build a world-class sonic identity for your brand.
+              </p>
+              <button
+                onClick={() => onNavigate('contact')}
+                className="px-6 py-3 rounded-full bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg cursor-pointer"
+              >
+                Contact Studio Team
+              </button>
+            </div>
+          )}
+
+        </div>
+      )}
 
     </section>
   );

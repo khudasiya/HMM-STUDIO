@@ -295,9 +295,9 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
       id="nav-ring-section" 
       className="py-16 px-4 max-w-5xl mx-auto relative z-20 scroll-mt-20 my-4"
     >
-      {/* Background Decorative Glow */}
-      <div className="absolute inset-0 bg-gradient-to-b from-purple-950/20 via-purple-900/10 to-transparent pointer-events-none rounded-3xl" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600/10 blur-[120px] pointer-events-none rounded-full" />
+      {/* Background Subtle Glow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-950/15 via-purple-900/5 to-transparent pointer-events-none rounded-3xl" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-600/10 blur-[140px] pointer-events-none rounded-full" />
 
       {/* Centered Wheel + Rotator Slider Container */}
       <div className="flex flex-col items-center justify-center relative z-10 max-w-xl mx-auto">
@@ -306,8 +306,8 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
         <div className="relative w-[340px] h-[340px] sm:w-[460px] sm:h-[460px] flex items-center justify-center select-none">
           
           {/* Outer Decorative Glow Ring */}
-          <div className="absolute inset-0 rounded-full border border-purple-500/20 shadow-[0_0_50px_rgba(168,85,247,0.15)] pointer-events-none" />
-          <div className="absolute inset-4 rounded-full border border-purple-900/40 pointer-events-none" />
+          <div className="absolute inset-0 rounded-full border border-purple-500/20 shadow-[0_0_40px_rgba(168,85,247,0.1)] pointer-events-none" />
+          <div className="absolute inset-4 rounded-full border border-purple-900/30 pointer-events-none" />
 
           <svg
             ref={wheelRef}
@@ -320,19 +320,19 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
             <defs>
               {/* Active Segment Gradient */}
               <radialGradient id="activeGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#c084fc" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#7e22ce" stopOpacity="0.4" />
+                <stop offset="0%" stopColor="#a855f7" stopOpacity="0.75" />
+                <stop offset="100%" stopColor="#581c87" stopOpacity="0.45" />
               </radialGradient>
               {/* Glow Filter */}
               <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feGaussianBlur stdDeviation="5" result="blur" />
                 <feComposite in="SourceGraphic" in2="blur" operator="over" />
               </filter>
             </defs>
 
             {/* Outer Tick Marks */}
-            <circle cx="250" cy="250" r="236" fill="none" stroke="#581c87" strokeWidth="1" strokeDasharray="3 6" opacity="0.5" />
-            <circle cx="250" cy="250" r="128" fill="none" stroke="#581c87" strokeWidth="1" strokeDasharray="2 4" opacity="0.6" />
+            <circle cx="250" cy="250" r="236" fill="none" stroke="#4c1d95" strokeWidth="1" strokeDasharray="3 6" opacity="0.4" />
+            <circle cx="250" cy="250" r="128" fill="none" stroke="#4c1d95" strokeWidth="1" strokeDasharray="2 4" opacity="0.5" />
 
             {/* 12 Arc Segments */}
             {RING_ITEMS.map((item, idx) => {
@@ -352,10 +352,10 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
                   {/* Segment Arc Path */}
                   <path
                     d={path}
-                    fill={isActive ? 'url(#activeGrad)' : 'rgba(24, 15, 38, 0.75)'}
-                    stroke={isActive ? item.color : 'rgba(147, 51, 234, 0.25)'}
-                    strokeWidth={isActive ? '2.5' : '1'}
-                    className="transition-all duration-300 group-hover:fill-purple-900/50 group-hover:stroke-purple-400/60"
+                    fill={isActive ? 'url(#activeGrad)' : 'rgba(15, 10, 24, 0.85)'}
+                    stroke={isActive ? item.color : 'rgba(139, 92, 246, 0.2)'}
+                    strokeWidth={isActive ? '2' : '1'}
+                    className="transition-all duration-300 group-hover:fill-purple-950/60 group-hover:stroke-purple-400/50"
                     filter={isActive ? 'url(#glow)' : undefined}
                   />
 
@@ -364,7 +364,7 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
                     <text
                       textAnchor="middle"
                       dominantBaseline="central"
-                      fill={isActive ? '#ffffff' : '#cbd5e1'}
+                      fill={isActive ? '#ffffff' : '#94a3b8'}
                       fontSize={isActive ? '11' : '9.5'}
                       fontWeight={isActive ? '800' : '600'}
                       letterSpacing="1"
@@ -378,7 +378,7 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
             })}
 
             {/* Center Hub Glass Circle */}
-            <circle cx="250" cy="250" r="125" fill="#0c0716" stroke="rgba(168, 85, 247, 0.3)" strokeWidth="2" />
+            <circle cx="250" cy="250" r="125" fill="#090610" stroke="rgba(168, 85, 247, 0.25)" strokeWidth="1.5" />
 
             {/* Pointer Needle Arrow - Rotates according to rotationAngle */}
             <g 
@@ -386,12 +386,12 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
               className="transition-transform duration-300 ease-out pointer-events-none"
             >
               {/* Needle Line extending from center to active segment */}
-              <line x1="250" y1="250" x2="250" y2="35" stroke={activeItem.color} strokeWidth="3" strokeLinecap="round" filter="url(#glow)" />
+              <line x1="250" y1="250" x2="250" y2="35" stroke={activeItem.color} strokeWidth="2.5" strokeLinecap="round" filter="url(#glow)" />
               {/* Needle Arrowhead */}
-              <polygon points="250,22 242,42 258,42" fill={activeItem.color} filter="url(#glow)" />
+              <polygon points="250,22 243,40 257,40" fill={activeItem.color} filter="url(#glow)" />
               {/* Center Pivot Circle */}
-              <circle cx="250" cy="250" r="14" fill="#1e1035" stroke={activeItem.color} strokeWidth="3" />
-              <circle cx="250" cy="250" r="6" fill="#ffffff" />
+              <circle cx="250" cy="250" r="14" fill="#140b24" stroke={activeItem.color} strokeWidth="2.5" />
+              <circle cx="250" cy="250" r="5" fill="#ffffff" />
             </g>
           </svg>
 
@@ -404,7 +404,7 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
               className="w-10 h-10 rounded-full flex items-center justify-center mb-1.5 shadow-lg border transition-transform duration-300 group-hover:scale-110"
               style={{ 
                 backgroundColor: `${activeItem.color}20`,
-                borderColor: `${activeItem.color}60`,
+                borderColor: `${activeItem.color}50`,
                 color: activeItem.color
               }}
             >
@@ -419,7 +419,7 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
               {activeItem.label}
             </h3>
             
-            <span className="text-[10px] font-mono text-purple-400 font-semibold mt-1 bg-purple-950/80 px-2 py-0.5 rounded-full border border-purple-800/40">
+            <span className="text-[9px] font-mono text-purple-300 font-bold mt-1.5 bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-800/40 tracking-wider uppercase">
               CLICK TO JUMP
             </span>
           </div>
@@ -432,8 +432,8 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
           <span>Click segment or drag wheel to rotate</span>
         </div>
 
-        {/* ROTATOR SLIDER CONTROL (Centered beneath the wheel as in user sketch) */}
-        <div className="w-full max-w-md glass-panel rounded-2xl p-5 border border-purple-900/40 bg-[#0d0718]/90 shadow-2xl">
+        {/* ROTATOR SLIDER CONTROL */}
+        <div className="w-full max-w-md bg-[#0b0714]/90 backdrop-blur-xl rounded-2xl p-5 border border-purple-900/30 shadow-2xl">
           <div className="flex items-center justify-between mb-2">
             <label className="text-xs font-mono uppercase tracking-widest text-purple-300 font-bold flex items-center gap-2">
               <Sliders className="w-4 h-4 text-purple-400" />
@@ -455,7 +455,7 @@ export const NavRingSection: React.FC<NavRingSectionProps> = ({ onNavigate, curr
               onChange={handleSliderChange}
               onMouseUp={handleSliderRelease}
               onTouchEnd={handleSliderRelease}
-              className="w-full h-3.5 bg-purple-950/90 rounded-lg appearance-none cursor-pointer accent-purple-500 border border-purple-800/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 shadow-inner"
+              className="w-full h-3 bg-purple-950/80 rounded-lg appearance-none cursor-pointer accent-purple-500 border border-purple-900/50 focus:outline-none shadow-inner"
             />
           </div>
 

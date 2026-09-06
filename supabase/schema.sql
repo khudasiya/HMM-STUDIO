@@ -64,3 +64,9 @@ CREATE POLICY "Public read blog_posts" ON blog_posts FOR SELECT USING (published
 CREATE POLICY "Admin full access audio_items" ON audio_items FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Admin full access videos" ON videos FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Admin full access blog_posts" ON blog_posts FOR ALL USING (auth.role() = 'authenticated');
+
+-- Enable Supabase Realtime for instant auto-sync across the website
+ALTER PUBLICATION supabase_realtime ADD TABLE audio_items;
+ALTER PUBLICATION supabase_realtime ADD TABLE videos;
+ALTER PUBLICATION supabase_realtime ADD TABLE blog_posts;
+

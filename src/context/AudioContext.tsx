@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { AudioItem } from '../types/portfolio';
-import { generateWaveformData } from '../lib/cdn';
+import { generateWaveformData, getCDNUrl } from '../lib/cdn';
 
 interface AudioContextType {
   currentTrack: AudioItem | null;
@@ -33,7 +33,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Initialize HTML5 Audio Element
   useEffect(() => {
     const audio = new Audio();
-    audio.crossOrigin = 'anonymous';
+    // Do not enforce crossOrigin="anonymous" on plain HTML audio to prevent CORS blocks on Cloudflare R2 / S3
+    audio.preload = 'auto';
     audioRef.current = audio;
 
     const handleTimeUpdate = () => {
@@ -129,7 +130,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Single active track rule: if playing a new track, pause existing
     if (currentTrack?.id !== track.id) {
       audioRef.current.pause();
-      audioRef.current.src = track.audioUrl;
+      audioRef.current.src = getCDNUrl(track.audioUrl);
       audioRef.current.currentTime = 0;
       setCurrentTrack(track);
       setWaveformFrequencies(generateWaveformData(track.id.length, 40));

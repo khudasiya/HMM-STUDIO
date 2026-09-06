@@ -1,35 +1,87 @@
 import React, { useState } from 'react';
 import { BlogPost } from '../types/portfolio';
-import { BookOpen, Clock, ArrowRight, X, User } from 'lucide-react';
+import { BookOpen, Clock, ArrowRight, X, User, Filter, Sparkles, Mail } from 'lucide-react';
+import { PageHeader } from './PageHeader';
 
 interface BlogSectionProps {
   posts: BlogPost[];
+  onNavigate?: (sectionId: string) => void;
+  isStandalonePage?: boolean;
 }
 
-export const BlogSection: React.FC<BlogSectionProps> = ({ posts }) => {
+export const BlogSection: React.FC<BlogSectionProps> = ({ 
+  posts, 
+  onNavigate, 
+  isStandalonePage = false 
+}) => {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const activePosts = posts.filter(p => p.published);
 
+  const categories = [
+    { id: 'all', label: 'All Articles' },
+    { id: 'sonic_strategy', label: 'Sonic Strategy' },
+    { id: 'audio_tech', label: 'Audio Tech' },
+    { id: 'case_studies', label: 'Case Studies' },
+  ];
+
+  const filteredPosts = selectedCategory === 'all' 
+    ? activePosts 
+    : activePosts.filter(p => p.category.toLowerCase().includes(selectedCategory.replace('_', ' ')));
+
   return (
-    <section id="blog" className="py-24 px-4 max-w-7xl mx-auto relative z-10 scroll-mt-20">
+    <section id="blog" className={`py-12 px-4 max-w-7xl mx-auto relative z-10 ${isStandalonePage ? '' : 'scroll-mt-20'}`}>
       
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-purple-400 bg-purple-950/60 border border-purple-800/40 px-3 py-1 rounded-full mb-3">
-            <BookOpen className="w-3.5 h-3.5" /> INSIGHTS & ESSAYS
+      {isStandalonePage && onNavigate && (
+        <PageHeader
+          title="Sonic Branding Insights & Essays"
+          subtitle="Deep dives into audio architecture, sonic psychology, spatial acoustics, & real-world case studies from our studio team."
+          category="Insights & Strategy"
+          icon={BookOpen}
+          currentSectionId="blog"
+          onNavigate={onNavigate}
+        />
+      )}
+
+      {!isStandalonePage && (
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-purple-400 bg-purple-950/60 border border-purple-800/40 px-3 py-1 rounded-full mb-3">
+              <BookOpen className="w-3.5 h-3.5" /> INSIGHTS & ESSAYS
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+              Sonic Branding Insights
+            </h2>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Sonic Branding Insights
-          </h2>
+          <p className="text-sm text-slate-300 max-w-md">
+            Deep dives into audio architecture, sonic psychology, and case studies from our studio team.
+          </p>
         </div>
-        <p className="text-sm text-slate-300 max-w-md">
-          Deep dives into audio architecture, sonic psychology, and case studies from our studio team.
-        </p>
-      </div>
+      )}
+
+      {/* Category Filters for Standalone Page */}
+      {isStandalonePage && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8">
+          <Filter className="w-4 h-4 text-purple-400 shrink-0 mr-1" />
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-4 py-1.5 rounded-full text-xs font-mono tracking-wider uppercase transition-all shrink-0 cursor-pointer ${
+                selectedCategory === cat.id
+                  ? 'bg-purple-600 text-white border border-purple-400 font-bold shadow-md'
+                  : 'bg-purple-950/40 text-slate-300 hover:bg-purple-900/50 border border-purple-900/40'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Grid of Preview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {activePosts.map((post) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        {(isStandalonePage ? filteredPosts : activePosts).map((post) => (
           <div
             key={post.id}
             onClick={() => setSelectedPost(post)}
@@ -77,12 +129,12 @@ export const BlogSection: React.FC<BlogSectionProps> = ({ posts }) => {
 
       {/* Article Reader Modal */}
       {selectedPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div className="bg-[#0f0a1c] border border-purple-500/40 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-10 shadow-2xl relative">
             
             <button
               onClick={() => setSelectedPost(null)}
-              className="absolute top-6 right-6 p-2 rounded-full bg-purple-950/60 border border-purple-800/40 text-purple-300 hover:text-white hover:bg-purple-900"
+              className="absolute top-6 right-6 p-2 rounded-full bg-purple-950/60 border border-purple-800/40 text-purple-300 hover:text-white hover:bg-purple-900 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -113,6 +165,29 @@ export const BlogSection: React.FC<BlogSectionProps> = ({ posts }) => {
                 return <p key={idx}>{paragraph}</p>;
               })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Newsletter Signup on Standalone Page */}
+      {isStandalonePage && (
+        <div className="bg-gradient-to-r from-purple-950/80 via-purple-900/40 to-purple-950/80 border border-purple-500/40 rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center">
+          <Mail className="w-10 h-10 text-purple-400 mb-3" />
+          <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
+            Subscribe to Sonic Insights
+          </h3>
+          <p className="text-slate-300 text-xs sm:text-sm max-w-md mb-6 leading-relaxed">
+            Get our monthly essay on sonic branding strategy, spatial audio developments, and audio neuroscience delivered straight to your inbox.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 w-full max-w-md">
+            <input
+              type="email"
+              placeholder="Enter your work email"
+              className="flex-1 bg-purple-950/80 border border-purple-800/60 rounded-full px-5 py-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-purple-400"
+            />
+            <button className="px-6 py-3 rounded-full bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shrink-0 cursor-pointer">
+              Subscribe
+            </button>
           </div>
         </div>
       )}
