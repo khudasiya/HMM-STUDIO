@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api, checkSupabaseHealth, seedInitialDataToSupabase, isSupabaseConfigured } from '../lib/supabase';
+import { User } from '@supabase/supabase-js';
 import { AudioItem, BlogPost, CategoryType, VideoItem } from '../types/portfolio';
 import { AudioCard } from './AudioCard';
 import { getCDNUrl } from '../lib/cdn';
@@ -91,7 +92,10 @@ interface AdminPortalProps {
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({ onDataChange, onBackToSite }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [passcode, setPasscode] = useState('');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [authError, setAuthError] = useState('');
 
   const [activeTab, setActiveTab] = useState<CategoryType | 'videos'>('logo_audio');
@@ -150,11 +154,32 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onDataChange, onBackTo
   const [blogImage, setBlogImage] = useState('');
 
   useEffect(() => {
-    setIsAuthenticated(api.isAdminAuthenticated());
+    // 1. Check existing Supabase session on load
+    api.getCurrentUser().then((user) => {
+      if (user) {
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(api.isAdminAuthenticated());
+      }
+    });
+
+    // 2. Subscribe to auth state changes
+    const unsubscribeAuth = api.onAuthStateChange((user) => {
+      if (user) {
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+      } else {
+        setCurrentUser(null);
+        setIsAuthenticated(false);
+      }
+    });
+
     loadAllData();
     checkHealth();
 
     return () => {
+      unsubscribeAuth();
       if (previewAudioRef.current) {
         previewAudioRef.current.pause();
       }
@@ -187,21 +212,35 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onDataChange, onBackTo
     setBlogPosts(posts);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode === 'hmm2026' || passcode === 'admin' || isSupabaseConfigured) {
-      api.setAdminAuthenticated(true);
-      setIsAuthenticated(true);
-      setAuthError('');
-      checkHealth();
-    } else {
-      setAuthError('Invalid admin passcode. (Default demo passcode: admin)');
+    setAuthError('');
+    setIsLoggingIn(true);
+    try {
+      const res = await api.signIn(email, password);
+      if (res.success && res.user) {
+        setCurrentUser(res.user);
+        setIsAuthenticated(true);
+        setAuthError('');
+        showToast('success', `Welcome back, ${res.user.email}!`);
+        await loadAllData();
+        await checkHealth();
+      } else {
+        setAuthError(res.error || 'Authentication failed. Please verify your email and password.');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Login failed';
+      setAuthError(msg);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
-  const handleLogout = () => {
-    api.setAdminAuthenticated(false);
+  const handleLogout = async () => {
+    await api.signOut();
+    setCurrentUser(null);
     setIsAuthenticated(false);
+    showToast('success', 'Signed out successfully.');
   };
 
   const handleCopySql = () => {
@@ -459,37 +498,66 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onDataChange, onBackTo
     return (
       <div className="min-h-screen pt-32 pb-20 px-4 flex items-center justify-center bg-[#08060e]">
         <div className="glass-panel border border-purple-500/40 rounded-3xl p-8 sm:p-12 max-w-md w-full shadow-2xl relative text-center">
-          <div className="w-14 h-14 rounded-2xl bg-purple-950/80 border border-purple-500/40 flex items-center justify-center mx-auto mb-6">
+          <div className="w-14 h-14 rounded-2xl bg-purple-950/80 border border-purple-500/40 flex items-center justify-center mx-auto mb-6 shadow-[0_0_25px_rgba(168,85,247,0.3)]">
             <Lock className="w-7 h-7 text-purple-400" />
           </div>
           <h2 className="text-2xl font-extrabold text-white mb-2">Hmm Studio Admin Portal</h2>
           <p className="text-xs text-slate-300 mb-6">
-            Authenticated portal for managing Cloudflare audio assets and Supabase live database.
+            Sign in with your Supabase Admin email & password to manage audio assets and live site tracks.
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4 text-left">
             <div>
+              <label className="block text-xs font-bold text-purple-300 uppercase mb-1.5">
+                Admin Email Address *
+              </label>
               <input
-                type="password"
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                placeholder="Enter Admin Passcode..."
-                className="w-full bg-[#08060e] border border-purple-900/60 rounded-xl px-4 py-3 text-sm text-white text-center focus:outline-none focus:border-purple-400"
+                type="email"
+                required
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@hmmstudio.com"
+                className="w-full bg-[#08060e] border border-purple-900/60 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400 transition-colors"
               />
             </div>
-            {authError && <p className="text-xs text-rose-400">{authError}</p>}
+
+            <div>
+              <label className="block text-xs font-bold text-purple-300 uppercase mb-1.5">
+                Password *
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                className="w-full bg-[#08060e] border border-purple-900/60 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400 transition-colors"
+              />
+            </div>
+
+            {authError && (
+              <div className="p-3 bg-rose-950/60 border border-rose-500/40 rounded-xl text-xs text-rose-300 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <span>{authError}</span>
+              </div>
+            )}
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-500 transition-all shadow-[0_0_20px_rgba(139,92,246,0.5)]"
+              disabled={isLoggingIn}
+              className="w-full py-3.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-500 transition-all shadow-[0_0_20px_rgba(139,92,246,0.5)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-2"
             >
-              Unlock Admin Portal
+              {isLoggingIn ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+              <span>{isLoggingIn ? 'Authenticating with Supabase...' : 'Sign In to Admin Portal'}</span>
             </button>
           </form>
 
           <div className="mt-6 pt-4 border-t border-purple-900/40 flex items-center justify-between text-[11px] text-purple-300/70">
-            <span>Passcode: <code className="text-purple-300">admin</code></span>
-            <button onClick={onBackToSite} className="hover:text-white underline">
+            <span className="text-slate-400 flex items-center gap-1">
+              <Shield className="w-3 h-3 text-purple-400" /> Supabase Auth Secured
+            </span>
+            <button onClick={onBackToSite} className="hover:text-white underline cursor-pointer">
               Return to Website
             </button>
           </div>
@@ -552,6 +620,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onDataChange, onBackTo
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-lg font-bold text-white">Content Management Portal</h1>
+              {currentUser?.email && (
+                <span className="text-[11px] font-mono text-purple-300 bg-purple-950/80 border border-purple-700/50 px-2.5 py-0.5 rounded-full">
+                  {currentUser.email}
+                </span>
+              )}
               
               {/* Supabase Status Chip */}
               {healthStatus?.tablesExist ? (
@@ -618,9 +691,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onDataChange, onBackTo
 
           <button
             onClick={handleLogout}
-            className="px-4 py-2 rounded-xl bg-rose-950/40 border border-rose-800/40 text-xs font-bold text-rose-300 hover:text-white flex items-center gap-2"
+            className="px-4 py-2 rounded-xl bg-rose-950/40 border border-rose-800/40 text-xs font-bold text-rose-300 hover:text-white flex items-center gap-2 cursor-pointer"
+            title="Sign Out of Supabase"
           >
-            <LogOut className="w-4 h-4" /> Lock
+            <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </div>
       </div>

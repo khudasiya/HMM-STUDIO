@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, User } from '@supabase/supabase-js';
 import { AudioItem, BlogPost, VideoItem } from '../types/portfolio';
 import { INITIAL_AUDIO_ITEMS, INITIAL_BLOG_POSTS, INITIAL_VIDEOS } from '../data/mockData';
 
@@ -9,10 +9,14 @@ const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '';
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 export const hasAdminPrivileges = Boolean(supabaseUrl && supabaseServiceKey);
 
-// Public read-only client
+// Public client with Supabase Auth enabled
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: false }
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      }
     })
   : null;
 
@@ -441,7 +445,73 @@ export const api = {
     return true;
   },
 
-  // Admin Authentication Session
+  // Admin Supabase Authentication
+  async signIn(email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
+    if (!supabase) {
+      return { success: false, error: 'Supabase client is not configured.' };
+    }
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      localStorage.setItem(STORAGE_KEYS.AUTH, 'true');
+      window.dispatchEvent(new Event('hmm_auth_update'));
+      return { success: true, user: data.user };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Login failed';
+      return { success: false, error: msg };
+    }
+  },
+
+  async signOut(): Promise<void> {
+    if (supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.warn('Sign out notice:', e);
+      }
+    }
+    localStorage.removeItem(STORAGE_KEYS.AUTH);
+    window.dispatchEvent(new Event('hmm_auth_update'));
+  },
+
+  async getCurrentUser(): Promise<User | null> {
+    if (!supabase) return null;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        localStorage.setItem(STORAGE_KEYS.AUTH, 'true');
+        return session.user;
+      }
+    } catch (e) {
+      console.warn('Error checking Supabase session:', e);
+    }
+    return null;
+  },
+
+  onAuthStateChange(callback: (user: User | null) => void): () => void {
+    if (!supabase) return () => {};
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        localStorage.setItem(STORAGE_KEYS.AUTH, 'true');
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.AUTH);
+      }
+      window.dispatchEvent(new Event('hmm_auth_update'));
+      callback(session?.user || null);
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  },
+
+  // Fast synchronous check
   isAdminAuthenticated(): boolean {
     return localStorage.getItem(STORAGE_KEYS.AUTH) === 'true';
   },
