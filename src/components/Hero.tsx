@@ -1,9 +1,10 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { Play, Pause, Sparkles, X, Volume2, ExternalLink } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
 import { AudioItem } from '../types/portfolio';
 import { WaveformVisualizer } from './WaveformVisualizer';
 import { generateWaveformData } from '../lib/cdn';
+import { INITIAL_AUDIO_ITEMS } from '../data/mockData';
 
 interface HeroProps {
   items: AudioItem[];
@@ -11,15 +12,15 @@ interface HeroProps {
   onExploreWork: () => void;
 }
 
-const GALLERY_CARDS = [
-  { src: '/assets/card1.png',          label: 'Sonic Logos' },
-  { src: '/assets/hero-waveform.png',  label: 'Waveform Art' },
-  { src: '/assets/hero-anthem.png',    label: 'Brand Anthem' },
-  { src: '/assets/hero-podcast.png',   label: 'Podcast Audio' },
-  { src: '/assets/hero-commercial.png',label: 'Commercial' },
-  { src: '/assets/hero-jingle.png',    label: 'Jingles' },
-  { src: '/assets/card3.png',          label: 'Sound Design' },
-];
+// Category labels for display
+const CATEGORY_LABELS: Record<string, string> = {
+  logo_audio: 'Sonic Logo',
+  brand_anthem: 'Brand Anthem',
+  podcast_audio: 'Podcast Audio',
+  commercial_song: 'Commercial',
+  jingle: 'Jingle',
+  extras: 'Sound Design',
+};
 
 /* ═══════════════════════════════════════════════════════════════
    InfiniteArcCarousel — JS-driven infinite scroll with real-time
@@ -50,8 +51,19 @@ function InfiniteArcCarousel({
     speedRef.current = isPickingFast ? 30.0 : 0.6;
   }, [isPickingFast]);
 
-  // Quadruplicated cards for seamless looping across all screen sizes
-  const allCards = [...GALLERY_CARDS, ...GALLERY_CARDS, ...GALLERY_CARDS, ...GALLERY_CARDS];
+  // Ensure the carousel always has enough cards to span the entire screen width seamlessly
+  const baseCards = useMemo(() => (items.length > 0 ? items : INITIAL_AUDIO_ITEMS), [items]);
+  const allCards = useMemo(() => {
+    if (baseCards.length === 0) return [];
+    // Need at least 28 cards to span across all wide viewports edge-to-edge
+    const minCards = 28;
+    const repeats = Math.max(3, Math.ceil(minCards / baseCards.length));
+    const result: AudioItem[] = [];
+    for (let r = 0; r < repeats; r++) {
+      result.push(...baseCards);
+    }
+    return result;
+  }, [baseCards]);
   const singleSetWidth = useRef(0);   // Exact pixel distance between card set 0 and set 1
 
   /* ── Apply 3D transforms to every card each frame ── */
@@ -113,10 +125,10 @@ function InfiniteArcCarousel({
     if (!strip) return;
 
     const cards = strip.children;
-    // Calculate exact pixel distance between card 0 and card 7 (start of second set)
-    if (cards.length > GALLERY_CARDS.length) {
+    // Calculate exact pixel distance between card 0 and start of second set
+    if (baseCards.length > 0 && cards.length > baseCards.length) {
       const firstCard = cards[0] as HTMLElement;
-      const secondSetFirstCard = cards[GALLERY_CARDS.length] as HTMLElement;
+      const secondSetFirstCard = cards[baseCards.length] as HTMLElement;
       const exactDistance = secondSetFirstCard.offsetLeft - firstCard.offsetLeft;
       if (exactDistance > 0) {
         singleSetWidth.current = exactDistance;
@@ -159,14 +171,14 @@ function InfiniteArcCarousel({
         className="flex items-center gap-0 will-change-transform"
         style={{ width: 'max-content' }}
       >
-        {allCards.map((card, idx) => {
-          const audioIdx = idx % (items.length || 1);
-          const cardAudioItem = items[audioIdx];
-          const isActive = cardAudioItem && currentTrack?.id === cardAudioItem.id && isPlaying;
+        {allCards.map((audioItem, idx) => {
+          const audioIdx = idx % (baseCards.length || 1);
+          const isActive = audioItem && currentTrack?.id === audioItem.id && isPlaying;
+          const categoryLabel = CATEGORY_LABELS[audioItem?.category || ''] || audioItem?.category || '';
 
           return (
             <div
-              key={`${idx}-${card.label}`}
+              key={`${idx}-${audioItem?.id}`}
               onClick={() => onCardClick(audioIdx)}
               className="relative shrink-0 cursor-pointer group will-change-transform -mr-3 sm:-mr-4"
               style={{
@@ -178,8 +190,8 @@ function InfiniteArcCarousel({
             >
               <div className="w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-xl bg-[#111]">
                 <img
-                  src={card.src}
-                  alt={card.label}
+                  src={audioItem?.coverImage || '/assets/card1.png'}
+                  alt={audioItem?.title || 'Audio'}
                   className="w-full h-full object-cover"
                   loading="lazy"
                   draggable={false}
@@ -193,7 +205,8 @@ function InfiniteArcCarousel({
                   }`}>
                     {isActive ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
                   </div>
-                  <span className="text-[9px] font-mono text-white/70 tracking-wider uppercase">{card.label}</span>
+                  <span className="text-[9px] font-mono text-white/70 tracking-wider uppercase">{categoryLabel}</span>
+                  <span className="text-[8px] font-mono text-white/50 max-w-[80%] text-center truncate">{audioItem?.title}</span>
                 </div>
               </div>
             </div>
@@ -210,13 +223,18 @@ function InfiniteArcCarousel({
 export const Hero: React.FC<HeroProps> = ({ items, onStartProject }) => {
   const { currentTrack, isPlaying, togglePlay, currentTime, duration, seek, waveformFrequencies } = useAudio();
   const [isPickingRandom, setIsPickingRandom] = useState(false);
-  const [poppedCard, setPoppedCard] = useState<{
-    audioItem: AudioItem;
-    galleryCard: typeof GALLERY_CARDS[0];
-  } | null>(null);
+  const [poppedCard, setPoppedCard] = useState<AudioItem | null>(null);
+
+  // Combine database items with demo items so carousel always has a full, diverse deck of cards
+  const displayItems = useMemo(() => {
+    if (!items || items.length === 0) return INITIAL_AUDIO_ITEMS;
+    const existingIds = new Set(items.map((it) => it.id));
+    const extraItems = INITIAL_AUDIO_ITEMS.filter((it) => !existingIds.has(it.id));
+    return [...items, ...extraItems];
+  }, [items]);
 
   const handleCardClick = (audioIdx: number) => {
-    if (items[audioIdx]) togglePlay(items[audioIdx]);
+    if (displayItems[audioIdx]) togglePlay(displayItems[audioIdx]);
   };
 
   // Pick Random button handler: acceleration 5x speed for 1.8s, then pop up a card!
@@ -227,14 +245,13 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject }) => {
 
     // Spin at 5x speed for 1.8s before selecting
     setTimeout(() => {
-      const randomGalleryIdx = Math.floor(Math.random() * GALLERY_CARDS.length);
-      const galleryCard = GALLERY_CARDS[randomGalleryIdx];
-      const audioItem = items[randomGalleryIdx % (items.length || 1)] || items[0];
+      const randomIdx = Math.floor(Math.random() * displayItems.length);
+      const audioItem = displayItems[randomIdx];
 
       if (audioItem) {
         togglePlay(audioItem);
       }
-      setPoppedCard({ audioItem, galleryCard });
+      setPoppedCard(audioItem || null);
     }, 1800);
   };
 
@@ -244,7 +261,7 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject }) => {
     setIsPickingRandom(false);
   };
 
-  const isPoppedItemPlaying = poppedCard && currentTrack?.id === poppedCard.audioItem.id && isPlaying;
+  const isPoppedItemPlaying = poppedCard && currentTrack?.id === poppedCard.id && isPlaying;
   const progress = duration > 0 ? currentTime / duration : 0;
 
   return (
@@ -297,7 +314,7 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject }) => {
 
           {/* 4. INFINITE 3D ARC CAROUSEL */}
           <InfiniteArcCarousel
-            items={items}
+            items={displayItems}
             onCardClick={handleCardClick}
             currentTrack={currentTrack}
             isPlaying={isPlaying}
@@ -360,17 +377,17 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject }) => {
 
             <div className="relative w-56 h-72 rounded-2xl overflow-hidden border-2 border-purple-500/60 shadow-2xl bg-[#0d0710] group">
               <img
-                src={poppedCard.galleryCard.src}
-                alt={poppedCard.galleryCard.label}
+                src={poppedCard.coverImage}
+                alt={poppedCard.title}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-xl font-bold text-white tracking-tight">{poppedCard.audioItem.title}</h3>
+              <h3 className="text-xl font-bold text-white tracking-tight">{poppedCard.title}</h3>
               <p className="text-xs font-mono text-purple-300/80 tracking-wide uppercase">
-                {poppedCard.audioItem.client} • {poppedCard.galleryCard.label}
+                {poppedCard.client} • {CATEGORY_LABELS[poppedCard.category] || poppedCard.category}
               </p>
             </div>
 
@@ -387,13 +404,13 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject }) => {
 
               <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 px-1">
                 <span>{isPoppedItemPlaying ? formatTime(currentTime) : '0:00'}</span>
-                <span>{poppedCard.audioItem.duration}</span>
+                <span>{poppedCard.duration}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3 w-full pt-1">
               <button
-                onClick={() => togglePlay(poppedCard.audioItem)}
+                onClick={() => togglePlay(poppedCard)}
                 className="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-purple-900/50 transition-colors cursor-pointer"
               >
                 {isPoppedItemPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
