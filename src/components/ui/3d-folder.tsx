@@ -231,7 +231,7 @@ export function AnimatedFolder({
               <div
                 key={project.id}
                 onClick={(e) => handleCardNavigate(project, e)}
-                className="group/card relative w-24 sm:w-32 md:w-36 h-36 sm:h-44 md:h-52 rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:shadow-[0_12px_40px_rgba(245,158,11,0.35)] hover:border-amber-400/80 hover:z-50 hover:scale-110 shrink-0"
+                className="group/card relative w-32 sm:w-40 md:w-48 h-44 sm:h-56 md:h-64 rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:shadow-[0_12px_40px_rgba(245,158,11,0.35)] hover:border-amber-400/80 hover:z-50 hover:scale-110 shrink-0"
                 style={{
                   transform: isOpen
                     ? `translateY(0px) scale(1) rotateY(${tiltY}deg)`
