@@ -13,7 +13,6 @@ import { JingleSection } from './components/JingleSection';
 import { ExtrasSection } from './components/ExtrasSection';
 import { ProcessSection } from './components/ProcessSection';
 import { BlogSection } from './components/BlogSection';
-import { AboutSection } from './components/AboutSection';
 import { ContactSection } from './components/ContactSection';
 import { AdminPortal } from './components/AdminPortal';
 import { Footer } from './components/Footer';
@@ -35,7 +34,6 @@ const iconMap: Record<string, React.ReactNode> = {
   extras: <Film className="w-5 h-5 text-rose-400" />,
   blog: <BookOpen className="w-5 h-5 text-orange-400" />,
   process: <Compass className="w-5 h-5 text-teal-400" />,
-  about: <User className="w-5 h-5 text-purple-300" />,
   contact: <Mail className="w-5 h-5 text-pink-400" />,
 };
 
@@ -122,8 +120,6 @@ export function AppContent() {
         return <BlogSection posts={blogPosts} onNavigate={handleNavigate} isStandalonePage />;
       case 'process':
         return <ProcessSection onNavigate={handleNavigate} isStandalonePage />;
-      case 'about':
-        return <AboutSection onNavigate={handleNavigate} isStandalonePage />;
       case 'contact':
         return <ContactSection onNavigate={handleNavigate} isStandalonePage />;
       default:
@@ -159,9 +155,8 @@ export function AppContent() {
             {/* Services Overview */}
             <ServicesSection onNavigate={handleNavigate} />
 
-            {/* Framework, About & Contact Details */}
+            {/* Framework & Contact Details */}
             <ProcessSection onNavigate={handleNavigate} />
-            <AboutSection onNavigate={handleNavigate} />
             <ContactSection onNavigate={handleNavigate} />
           </div>
         )}

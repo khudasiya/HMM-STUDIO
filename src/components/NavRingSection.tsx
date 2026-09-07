@@ -124,15 +124,6 @@ const RING_ITEMS: RingItem[] = [
     color: '#a7f3d0',
   },
   {
-    id: 'about',
-    label: 'ABOUT STUDIO',
-    shortLabel: 'ABOUT',
-    category: 'Our Team',
-    description: 'Learn about Hmm Studio & team',
-    icon: User,
-    color: '#ddd6fe',
-  },
-  {
     id: 'contact',
     label: 'START PROJECT',
     shortLabel: 'CONTACT',

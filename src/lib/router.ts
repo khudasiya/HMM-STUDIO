@@ -89,14 +89,6 @@ export const ROUTES: RouteInfo[] = [
     description: 'Our 4-step sonic creation workflow',
   },
   {
-    id: 'about',
-    path: '/about',
-    label: 'ABOUT STUDIO',
-    shortLabel: 'ABOUT',
-    category: 'Our Team',
-    description: 'Learn about Hmm Studio & team',
-  },
-  {
     id: 'contact',
     path: '/contact',
     label: 'START PROJECT',
