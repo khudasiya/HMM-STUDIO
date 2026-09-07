@@ -4,7 +4,6 @@ import { useAudio } from '../context/AudioContext';
 import { AudioItem } from '../types/portfolio';
 import { WaveformVisualizer } from './WaveformVisualizer';
 import { generateWaveformData } from '../lib/cdn';
-import { INITIAL_AUDIO_ITEMS } from '../data/mockData';
 
 interface HeroProps {
   items: AudioItem[];
@@ -23,8 +22,171 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   InfiniteArcCarousel — JS-driven infinite scroll with real-time
-   per-card rotateY / scale / filter computed from viewport center
+   SingleHeroCard — Featured centered 3D card when 1 track exists
+   ═══════════════════════════════════════════════════════════════ */
+function SingleHeroCard({
+  item,
+  isActive,
+  onClick,
+}: {
+  item: AudioItem;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  const categoryLabel = CATEGORY_LABELS[item.category] || item.category || 'Audio';
+
+  return (
+    <div className="relative w-full flex justify-center items-center py-8 sm:py-14 px-4">
+      {/* Ambient purple spotlight glow behind card */}
+      <div className="absolute w-72 sm:w-96 h-80 sm:h-96 bg-purple-600/20 blur-[100px] rounded-full pointer-events-none" />
+
+      {/* The Single Card */}
+      <div
+        onClick={onClick}
+        className="relative group cursor-pointer rounded-3xl overflow-hidden border border-purple-500/40 hover:border-purple-400/80 bg-[#120a1d] shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_50px_rgba(168,85,247,0.25)] hover:shadow-[0_25px_65px_rgba(168,85,247,0.4)] transition-all duration-300 transform hover:-translate-y-2 hover:scale-[1.02]"
+        style={{
+          width: 'clamp(230px, 25vw, 300px)',
+          height: 'clamp(320px, 35vw, 420px)',
+        }}
+      >
+        <img
+          src={item.coverImage || '/assets/card1.png'}
+          alt={item.title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          draggable={false}
+        />
+
+        {/* Ambient top & bottom darkening overlays */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#090610] via-black/20 to-black/40 pointer-events-none" />
+
+        {/* Category Pill at top */}
+        <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-purple-500/40 text-[11px] font-mono text-purple-300 uppercase tracking-wider flex items-center gap-1.5 shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+          {categoryLabel}
+        </div>
+
+        {/* Center Play Button Overlay */}
+        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-all duration-300 ${
+          isActive ? 'opacity-100 bg-black/30' : 'opacity-0 group-hover:opacity-100 bg-black/40'
+        }`}>
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center shadow-2xl backdrop-blur-md transition-transform duration-300 group-hover:scale-110 ${
+            isActive
+              ? 'bg-purple-600 text-white ring-4 ring-purple-400/50 animate-pulse'
+              : 'bg-white/95 text-purple-950 hover:bg-purple-500 hover:text-white'
+          }`}>
+            {isActive ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
+          </div>
+          <span className="text-[11px] font-mono text-purple-200 tracking-wider uppercase font-semibold">
+            {isActive ? 'Now Playing' : 'Click to Play'}
+          </span>
+        </div>
+
+        {/* Bottom Metadata */}
+        <div className="absolute bottom-5 left-5 right-5 text-left pointer-events-none space-y-1">
+          <h3 className="text-lg sm:text-xl font-bold text-white truncate drop-shadow-md">
+            {item.title}
+          </h3>
+          <div className="flex items-center justify-between text-xs text-purple-300/80 font-mono">
+            <span className="truncate">{item.client}</span>
+            {item.duration && <span>{item.duration}</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MultiHeroCards — Centered 3D row when 2 to 5 tracks exist
+   ═══════════════════════════════════════════════════════════════ */
+function MultiHeroCards({
+  items,
+  currentTrack,
+  isPlaying,
+  onCardClick,
+}: {
+  items: AudioItem[];
+  currentTrack: AudioItem | null;
+  isPlaying: boolean;
+  onCardClick: (audioIdx: number) => void;
+}) {
+  return (
+    <div className="relative w-full flex justify-center items-center py-8 sm:py-14 px-4 overflow-x-auto">
+      <div className="flex items-center justify-center gap-4 sm:gap-6 flex-wrap md:flex-nowrap">
+        {items.map((audioItem, idx) => {
+          const isActive = currentTrack?.id === audioItem.id && isPlaying;
+          const categoryLabel = CATEGORY_LABELS[audioItem.category] || audioItem.category || '';
+          const centerIdx = (items.length - 1) / 2;
+          const norm = centerIdx > 0 ? (idx - centerIdx) / centerIdx : 0;
+          const rotateY = norm * -12;
+          const translateY = Math.abs(norm) * 8;
+
+          return (
+            <div
+              key={audioItem.id}
+              onClick={() => onCardClick(idx)}
+              className="relative shrink-0 cursor-pointer group will-change-transform rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 hover:border-purple-500/60 shadow-xl bg-[#111] transition-all duration-300 hover:scale-105 hover:shadow-[0_15px_40px_rgba(168,85,247,0.3)]"
+              style={{
+                width: 'clamp(170px, 18vw, 230px)',
+                height: 'clamp(240px, 25vw, 320px)',
+                transform: `perspective(800px) rotateY(${rotateY}deg) translateY(${translateY}px)`,
+              }}
+            >
+              <img
+                src={audioItem.coverImage || '/assets/card1.png'}
+                alt={audioItem.title}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                draggable={false}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+              <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[9px] font-mono text-purple-300 uppercase tracking-wider">
+                {categoryLabel}
+              </div>
+
+              <div className={`absolute inset-0 flex flex-col items-center justify-center gap-2 transition-opacity duration-200 ${
+                isActive ? 'opacity-100 bg-black/40' : 'opacity-0 group-hover:opacity-100 bg-black/40'
+              }`}>
+                <div className={`w-11 h-11 rounded-full flex items-center justify-center shadow-lg ${
+                  isActive ? 'bg-purple-600 text-white animate-pulse' : 'bg-white/95 text-black hover:bg-purple-500 hover:text-white'
+                }`}>
+                  {isActive ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+                </div>
+              </div>
+
+              <div className="absolute bottom-3.5 left-3.5 right-3.5 text-left pointer-events-none space-y-0.5">
+                <h4 className="text-sm font-bold text-white truncate drop-shadow-md">{audioItem.title}</h4>
+                {audioItem.client && (
+                  <p className="text-[10px] text-purple-300/80 font-mono truncate">{audioItem.client}</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EmptyHeroState — Friendly prompt when 0 tracks are loaded
+   ═══════════════════════════════════════════════════════════════ */
+function EmptyHeroState() {
+  return (
+    <div className="w-full flex flex-col items-center justify-center py-12 px-4 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-purple-950/40 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-3 shadow-lg">
+        <Volume2 className="w-8 h-8" />
+      </div>
+      <h3 className="text-lg font-semibold text-white mb-1">No audio items published yet</h3>
+      <p className="text-xs text-slate-400 max-w-sm">
+        Add your first sonic logo, anthem, or soundtrack from the Admin portal to showcase it here.
+      </p>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   InfiniteArcCarousel — 3D infinite carousel when > 5 tracks exist
    ═══════════════════════════════════════════════════════════════ */
 function InfiniteArcCarousel({
   items,
@@ -41,30 +203,27 @@ function InfiniteArcCarousel({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef(0);        // Current pixel offset (accumulated)
+  const offsetRef = useRef(0);
   const rafRef = useRef(0);
-  const speedRef = useRef(0.6);       // Base px per frame
+  const speedRef = useRef(0.6);
   const pausedRef = useRef(false);
 
-  // Update speed: 50x hyper-fast spin when picking random!
   useEffect(() => {
     speedRef.current = isPickingFast ? 30.0 : 0.6;
   }, [isPickingFast]);
 
-  // Ensure the carousel always has enough cards to span the entire screen width seamlessly
-  const baseCards = useMemo(() => (items.length > 0 ? items : INITIAL_AUDIO_ITEMS), [items]);
+  // Use the actual items array
+  const baseCards = items;
   const allCards = useMemo(() => {
     if (baseCards.length === 0) return [];
-    // Need at least 28 cards to span across all wide viewports edge-to-edge
-    const minCards = 28;
-    const repeats = Math.max(3, Math.ceil(minCards / baseCards.length));
+    const repeats = Math.max(3, Math.ceil(24 / baseCards.length));
     const result: AudioItem[] = [];
     for (let r = 0; r < repeats; r++) {
       result.push(...baseCards);
     }
     return result;
   }, [baseCards]);
-  const singleSetWidth = useRef(0);   // Exact pixel distance between card set 0 and set 1
+  const singleSetWidth = useRef(0);
 
   /* ── Apply 3D transforms to every card each frame ── */
   const applyTransforms = useCallback(() => {
@@ -220,39 +379,30 @@ function InfiniteArcCarousel({
 /* ═══════════════════════════════════════════════════
    Hero Section Component
    ═══════════════════════════════════════════════════ */
-export const Hero: React.FC<HeroProps> = ({ items, onStartProject }) => {
+export const Hero: React.FC<HeroProps> = ({ items = [], onStartProject }) => {
   const { currentTrack, isPlaying, togglePlay, currentTime, duration, seek, waveformFrequencies } = useAudio();
   const [isPickingRandom, setIsPickingRandom] = useState(false);
   const [poppedCard, setPoppedCard] = useState<AudioItem | null>(null);
 
-  // Combine database items with demo items so carousel always has a full, diverse deck of cards
-  const displayItems = useMemo(() => {
-    if (!items || items.length === 0) return INITIAL_AUDIO_ITEMS;
-    const existingIds = new Set(items.map((it) => it.id));
-    const extraItems = INITIAL_AUDIO_ITEMS.filter((it) => !existingIds.has(it.id));
-    return [...items, ...extraItems];
-  }, [items]);
-
   const handleCardClick = (audioIdx: number) => {
-    if (displayItems[audioIdx]) togglePlay(displayItems[audioIdx]);
+    if (items[audioIdx]) togglePlay(items[audioIdx]);
   };
 
-  // Pick Random button handler: acceleration 5x speed for 1.8s, then pop up a card!
+  // Pick Random button handler: acceleration spin before selecting
   const handlePickRandom = () => {
-    if (isPickingRandom) return;
+    if (items.length === 0 || isPickingRandom) return;
     setIsPickingRandom(true);
     setPoppedCard(null);
 
-    // Spin at 5x speed for 1.8s before selecting
     setTimeout(() => {
-      const randomIdx = Math.floor(Math.random() * displayItems.length);
-      const audioItem = displayItems[randomIdx];
+      const randomIdx = Math.floor(Math.random() * items.length);
+      const audioItem = items[randomIdx];
 
       if (audioItem) {
         togglePlay(audioItem);
       }
       setPoppedCard(audioItem || null);
-    }, 1800);
+    }, items.length > 1 ? 1800 : 400);
   };
 
   // Close popped card overlay & resume normal operation
@@ -312,14 +462,39 @@ export const Hero: React.FC<HeroProps> = ({ items, onStartProject }) => {
             </h1>
           </div>
 
-          {/* 4. INFINITE 3D ARC CAROUSEL */}
-          <InfiniteArcCarousel
-            items={displayItems}
-            onCardClick={handleCardClick}
-            currentTrack={currentTrack}
-            isPlaying={isPlaying}
-            isPickingFast={isPickingRandom && !poppedCard}
-          />
+          {/* 4. DYNAMIC AUDIO SHOWCASE CARDS:
+              - 0 items: Empty state prompt
+              - 1 item: Exactly ONE centered 3D showcase card (no duplicates, no samples)
+              - 2 to 5 items: Centered 3D curved lineup
+              - > 5 items: Continuous 3D infinite carousel */}
+          {items.length === 0 && <EmptyHeroState />}
+
+          {items.length === 1 && (
+            <SingleHeroCard
+              item={items[0]}
+              isActive={!!currentTrack && currentTrack.id === items[0].id && isPlaying}
+              onClick={() => handleCardClick(0)}
+            />
+          )}
+
+          {items.length >= 2 && items.length <= 5 && (
+            <MultiHeroCards
+              items={items}
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              onCardClick={handleCardClick}
+            />
+          )}
+
+          {items.length > 5 && (
+            <InfiniteArcCarousel
+              items={items}
+              onCardClick={handleCardClick}
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              isPickingFast={isPickingRandom && !poppedCard}
+            />
+          )}
         </div>
 
         <div>
