@@ -233,7 +233,7 @@ function InfiniteArcCarousel({
    Hero Section Component
    ═══════════════════════════════════════════════════ */
 export const Hero: React.FC<HeroProps> = ({ items = [], onStartProject }) => {
-  const { currentTrack, isPlaying, togglePlay, currentTime, duration, seek, waveformFrequencies } = useAudio();
+  const { currentTrack, isPlaying, togglePlay, pauseTrack, currentTime, duration, seek, waveformFrequencies } = useAudio();
   const [isPickingRandom, setIsPickingRandom] = useState(false);
   const [poppedCard, setPoppedCard] = useState<AudioItem | null>(null);
 
@@ -258,8 +258,9 @@ export const Hero: React.FC<HeroProps> = ({ items = [], onStartProject }) => {
     }, items.length > 1 ? 1800 : 400);
   };
 
-  // Close popped card overlay & resume normal operation
+  // Close popped card overlay & resume normal operation, stopping playback
   const handleCloseModal = () => {
+    pauseTrack();
     setPoppedCard(null);
     setIsPickingRandom(false);
   };
