@@ -224,6 +224,39 @@ export const INITIAL_VIDEOS: VideoItem[] = [
 
 export const INITIAL_BLOG_POSTS: BlogPost[] = [
   {
+    id: 'post-0',
+    title: 'Your Brand Has a Face. Give It a Sound the World Remembers (Agency Deck)',
+    slug: 'brand-sound-masterclass-deck',
+    excerpt: 'The complete 10-slide whitepaper breakdown on why sonic branding delivers 3.2× brand recall, 60% higher organic reach, and infinite compounding ROI vs paid UGC ads.',
+    content: `Brands spend crores on advertising campaigns and end every single one in silence. Video after video fades out with zero ownable audio signature — leaving pure brand recall completely wasted on the cutting room floor.
+
+### The Viral Truth: 1 Viral Song > 100 Paid UGC Ads
+Consider timeless Indian powerhouses:
+- **Amul**: 60+ years of national cultural dominance on a single jingle. Zero recurring media spend needed to anchor immediate brand recall.
+- **MDH Masale**: *"Asli Masale Sach Sach"* — three simple words. 100% mind share and decades of brand dominance.
+
+### Why Sound Works: Neuroscience of Brand Recall
+- **3.2× More Brand Recall** with consistent audio signatures compared to visual-only marketing.
+- **40% Increase in In-Store Purchase Intent** with bespoke ambient soundscapes.
+- **86% Repeat Customer Retention** when emotional acoustic connection is established.
+- **9× Greater Recall** when the brand motif or name is anchored within the sonic logo.
+
+### The 5 Elements of Complete Sonic Identity:
+1. **01 Sonic Logo (3–5s)**: Your hero soundmark. Plays on every reel, ad, and film (like Netflix's Tudum).
+2. **02 Reel Song (60s)**: Fully produced brand anthem for all creator & social content. Organic reach without ad spend.
+3. **03 In-Store Soundscape (Loopable)**: Custom ambient music for retail spaces.
+4. **04 Website Sound (On-load)**: Subtle audio across digital touchpoints.
+5. **05 Brand Theme (90s)**: Full cinematic anthem for events, launches, and films.
+
+Explore the interactive presentation deck above to hear audio samples and learn how hmm studio crafts world-class soundmarks.`,
+    category: 'Sonic Strategy',
+    featuredImage: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=800&q=80',
+    author: 'Om Khudasiya, Founder',
+    readTime: '5 min read',
+    published: true,
+    createdAt: '2026-03-10',
+  },
+  {
     id: 'post-1',
     title: 'Why Sonic Identity is the Missing 50% of Your Brand Architecture',
     slug: 'sonic-identity-missing-50-percent',
